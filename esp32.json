@@ -1,0 +1,24 @@
+{
+    "i2c": {
+        "import": "machine",
+        "type": "I2C",
+        "id": 0,
+        "sda": {
+            "import": "machine",
+            "type": "Pin",
+            "id": 19
+        },
+        "scl": {
+            "import": "machine",
+            "type": "Pin",
+            "id": 18
+        },
+        "freq": 400000
+    },
+    "gpio": {
+        "import": "pcf8574",
+        "type": "PCF8574",
+        "i2c": "&i2c",
+        "address": "0x38"
+    }
+}
