@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from machine import Pin
+
 class PCF8574:
     def __init__(self, i2c, address=0x20):
         self._i2c = i2c
@@ -70,3 +72,31 @@ class PCF8574:
 
     def _write(self):
         self._i2c.writeto(self._address, self._port)
+
+
+class PCF8574_Pin:
+    def __init__(self, num :int, base: PCF8574):
+        self._base = base
+        self._id = num
+        
+    def init(dir, pullup):
+        pass
+
+    def value(self):
+        return (self._base.port & (1 << self._id)) == (1<<self._id)
+    
+    def off(self):
+        self._base.port &= ~(1<<self._id)
+        
+    def on(self):
+        self._base.port |= (1<<self._id)
+        
+    def irq(self):
+        raise NotImplementedError
+    
+    def __call__(self, value):
+        if value:
+            self.on()
+        else:
+            self.off()
+    

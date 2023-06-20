@@ -16,9 +16,67 @@
         "freq": 400000
     },
     "gpio": {
-        "import": "pcf8574",
+        "import": "hw.pcf8574",
         "type": "PCF8574",
         "i2c": "&i2c",
         "address": "0x38"
+    },
+    "hr_mot": {
+        "import": "hw.uln2003",
+        "type": "Stepper",
+        "delay": 1,
+        "pin1": {
+            "import": "pcf8574",
+            "type":"PCF8574_Pin",
+            "num": 0,
+            "base": "&gpio"
+        },
+        "pin2": {
+            "import": "pcf8574",
+            "type":"PCF8574_Pin",
+            "num": 1,
+            "base": "&gpio"
+        },
+        "pin3": {
+            "import": "pcf8574",
+            "type":"PCF8574_Pin",
+            "num": 2,
+            "base": "&gpio"
+        },
+        "pin4": {
+            "import": "pcf8574",
+            "type":"PCF8574_Pin",
+            "num": 3,
+            "base": "&gpio"
+        }
+    },
+    "vr_mot": {
+        "import": "hw.uln2003",
+        "type": "Stepper",
+        "delay": 2,
+        "pin1": {
+            "import": "hw.pcf8574",
+            "type":"PCF8574_Pin",
+            "num": 4,
+            "base": "&gpio"
+        },
+        "pin2": {
+            "import": "hw.pcf8574",
+            "type":"PCF8574_Pin",
+            "num": 5,
+            "base": "&gpio"
+        },
+        "pin3": {
+            "import": "hw.pcf8574",
+            "type":"PCF8574_Pin",
+            "num": 6,
+            "base": "&gpio"
+        },
+        "pin4": {
+            "import": "hw.pcf8574",
+            "type":"PCF8574_Pin",
+            "num": 7,
+            "base": "&gpio"
+        }
     }
 }

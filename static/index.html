@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Настройка подключения</title>
+    <link rel="stylesheet" media="all" href="style.css" />
+    <script type="text/javascript">
+        let tmr_upd_time = 4000;
+        let ap_scan_tmr = null;
+        let info = {}
+
+        function $(id) {
+            return document.getElementById(id)
+        }
+
+        function get_mac(ondone) {
+            if (typeof ondone !== "function") {
+                return
+            }
+            var xhr = new XMLHttpRequest();
+            xhr.timeout = 30000;
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    ondone(JSON.parse(this.responseText));
+                }
+            };
+
+            xhr.open("GET", "/info", true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(null)
+        }
+
+        function form_to_json() {
+            var formElement = document.getElementsByTagName("form")[0],
+                inputElements = Array.from(formElement.getElementsByTagName("input")).filter(inp => inp.type ===
+                    "text" || inp.type === "password"),
+                jsonObject = {};
+
+            for (var i = 0; i < inputElements.length; i++) {
+                var inputElement = inputElements[i];
+                if (inputElement.type === "text" && !inputElement.validity.valid) {
+                    return null;
+                }
+                jsonObject[inputElement.name] = inputElement.value;
+            }
+            return jsonObject;
+        }
+
+        function send_ctrl() {
+            if (confirm("Установить выбранные параметры?")) {
+                var obj = form_to_json();
+
+                if (obj === null) {
+                    return
+                }
+                obj['token'] = info.mac;
+                srv = new URL(window.location).searchParams.get('server')
+                if (srv) {
+                    console.log('Will use server: ', srv)
+                    obj['server'] = "mqtt://" + srv
+                } else {
+                    obj['server'] = "mqtt://x.ks.ua"
+                }
+
+                $("main-box").innerHTML = "<h2>Подключение..</h2>\
+                            <p class=\"p1\">Через <span id=\"redirect-tmr\">60</span> секунд вы перейдете на сайт для дальнейшей настройки</p>\
+                            <p class=\"p1\">Если этого не произошло, проверьте список WIFI сетей</p>";
+
+                let redir_cnt = 60;
+                setInterval(function () {
+                    $("redirect-tmr").innerHTML = redir_cnt
+                    redir_cnt--;
+                    if (redir_cnt == 0) {
+                        window.location.href = "http://swarm.x.ks.ua"
+                    }
+                }, 1000);
+
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/ctrl", true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.send(JSON.stringify(obj));
+            }
+        }
+
+        function get_ap_list(ondone) {
+            if (typeof ondone !== "function") {
+                return
+            }
+            var xhr = new XMLHttpRequest();
+            xhr.timeout = 30000;
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    ondone(JSON.parse(this.responseText));
+                }
+            };
+
+            xhr.open("GET", "/ap_list", true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(null)
+        }
+
+        function set_ap_name(name) {
+            $("ap-name-box").value = name;
+        }
+
+        function append_ap(ap_list) {
+            console.log(ap_list);
+            if (ap_list.length > 0) {
+                $("ap-list").innerHTML = "";
+                for (let ap_name in ap_list) {
+                    if (ap_list[ap_name]) {
+                        $("ap-list").innerHTML +=
+                            "<div class=\"button title\" onclick='set_ap_name(\"" + ap_list[ap_name] + "\");'>\
+                            <div class=\"circle\"></div>\
+                            <div class=\"wifiname\">\
+                            <p class=\"p1\">" + ap_list[ap_name] + "</p>\
+                            </div></div>\
+                            <hr>";
+                    }
+                }
+                tmr_upd_time = 30000;
+            } else {
+                setTimeout(function() { get_ap_list(append_ap) }, 10000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            get_mac(function (inf) {
+                info = inf
+                let ver = inf.version.split(';')
+                $("serial").innerText = inf.serial
+                $("mac").innerText = inf.mac
+                $("ver").innerText = ver[0] + " " + ver[1] + " " + ver[2].slice(0, 8)
+                document.getElementById("ap-list").innerHTML =
+                    "<div class=\"lds-ring\"><div></div><div></div><div></div><div></div></div>"
+                get_ap_list(append_ap);
+            })
+            $("pb").addEventListener("click", () => {
+                const p = $("pwdbox")
+                const type = p.getAttribute('type') === 'password' ? 'text' : 'password';
+                p.setAttribute('type', type);
+                $("pb").classList.toggle('pbs');
+                $("pb").classList.toggle('pbc');
+            }, false)
+        });
+    </script>
+</head>
+
+
+<body>
+    <div class="box1" id="main-box">
+        <div class="title">
+
+            <div class="wifi">
+                <h2>Настройка подключения WIFI</h2>
+            </div>
+            <div class="img">
+                <img src="data:image/gif;base64,R0lGODlhYgBiAMQQAH9/fxAQEO/v70BAQL+/v6+vr2BgYN/f3yAgIM/Pz5+fn1BQUI+PjzAwMHBwcAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAABiAGIAAAX/ICSOZGmeaKqubOu+cCzPdG3feK7vdTIMC4AQUCAkeMgk4cFsOh+BgQFAECSvs+Vz+0QsGASseCUgEBRDxy/AdQa+h7H8lSAAFo32o+E4zv8tdgtsWwgMcYCJKgkAeVsLBYqSKAcMA4UAVpObI5UITwEOiJycBAZbBqOkkwIAhE2Zq5wCCp9NAQyypLVOCGG6rK5OC5rAigKnt5HGkgmOTMTMkgyvAb/SgAeXsNiKDE4Dxd1yCbYPCH7jcgILtwrqf99N7/ByBa8G9eTm+fpiAs/6zRlCxYwugE0EjmkTxQCYTQK2PVCIRc8TPtcAJZsoZ4iBH+a4vKH3RyLFP3Xu/4S8ZSAjFoRMcpE6oMDAqyYNSL58ppNUAZugYr20FSCdrgLt3AAQk4AQAnG6Dji4iWCZkiYDurW6OUDVDnkPlmoFoPRK0gcumWkD5xUHzABQpd1ThiRBkwX12DlxgASsVXVzmYTjsQ2uvgPPGrStcYAQXn3Ibhm9ATbtOLJMiu7YhsCfCAWSddhlItYf6MyTazjIHFfdaSiLZQggxNczhNcNWsvA/CD2uNdZc9g6WY937RuvfY/b+LfG8BkHhhTRneStchevqafQ4mYAFTmNBQsnLYO7yJZiCnC7gTmAjOgA1DzrwkB7jaQBrrOYzaTnjAQMDBKUfbIREpwNyRyYw/9PXTSHg3pMOBjDaL0hsdUwBMLAGQ6OlMbDhZlJSMMB69UgT2dYrFUiDqtBkWEKAjSRGg8K4KMDf2HdkNRxWDiTkA7tIccEimNE9KNbhPgHQ4xMzJjERsTJ0GIDN2wj0xwbeThiE5a9II+CckgkIgxJRekChYm89WIKELpnAyFdXtEUNDgQMmYLSWkph183JGNmC19KwtmaJ7RpgxZuJhJejm8yEWcLTeiHRHuEmpAMjzJsc+cVOF45w2lgxpCMngMNaQOJTNggz2PHcNkoWjVoESoKCqgxgANKwuCnDUl5GgOqD7BQwEpQbKqCoTVg9icLTWj3Ghe5tgBnDRDO+oK0LXFCCIUDBRQwVRPGopBnD5nZsE2ctihGAmKmzhBoDU3wGhMKbba1aLSLlFsDIU62gBmpECiLQouYvtBsDecmS94JmtIr3gyOPLpCwjT8i0LDhT6cqaM1jFoDqCgIfALBNLQIsL8LZ6FxCdqmtmi4J1hcccrlrVxCukaxe47CjM4gs8oPWAuBeQYoUNMrMJ9wgBmS/mNGv7dZhK9tLxBAbFVU71AAAD8QkfXXYIct9thkmxACADs="
+                    alt="">
+            </div>
+        </div>
+
+        <form action="" method="" onsubmit="return false;">
+            <table class="box3">
+                <tr class="box2">
+                    <td>
+                        <p>Название WIFI</p>
+                    </td>
+                    <td><input type="text" maxlength=32 name="ap" required id="ap-name-box" /></td>
+                </tr>
+                <tr class="box2">
+                    <td>
+                        <p>Пароль</p>
+                    </td>
+
+                    <td>
+                        <div>
+                            <input id="pwdbox" type="password" maxlength=32 minlength="8" name="password" required />
+                            <i id="pb" class="pb pbs">&nbsp;</i>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <button class="subbut" onclick="send_ctrl()">
+                <p class="buttext">Подключить</p>
+            </button>
+        </form>
+        <div class="list">
+            <hr>
+            <div class="ap_list" id="ap-list">
+            </div>
+        </div>
+        <div class="info">
+            <p><a href="fw.html">Обновление прошивки</a></p>
+            <table style="font-size: 10pt; color: #666;">
+                <tr>
+                    <td align="right">MAC:</td>
+                    <td>
+                        <div id="mac"> - </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right"> Серийный номер:</td>
+                    <td>
+                        <div id="serial"> - </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right">Версия:</td>
+                    <td>
+                        <div id="ver"> - </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

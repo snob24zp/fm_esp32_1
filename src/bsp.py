@@ -68,7 +68,6 @@ def __create_item(obj, parsed, cfg):
             if 'id' in _ret:
                 _id = _ret['id']
                 del _ret['id']
-                print(f'-- id: {_id}')
                 return globals()[_type](_id, **_ret)
             else:
                 raise TypeError(f'Could not apply args on {_type} ({ex})')

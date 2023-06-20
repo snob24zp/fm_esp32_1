@@ -15,7 +15,8 @@ fi
 git submodule init
 git submodule sync
 
-SRCS=(.)
+SRCS=(hw .)
+HTMLS=(static)
 
 CMD="ampy -p $1"
 # CMD="echo $1"
@@ -52,6 +53,30 @@ for _lib in ${SRCS[@]}; do
     done
 done
 
+for _lib in ${HTMLS[@]}; do
+    if [ $_lib != '.' ]; then
+        $CMD rmdir $_lib &> /dev/null
+        echo "Create dir $_lib"
+        $CMD mkdir $_lib
+    fi
+
+    for _f in ./$_lib/*.html; do
+        _rf="$_lib/$(basename $_f)"
+        _minified="./src/$_lib/$(basename $_f)"
+        minify $_f > $_minified
+        echo "copying HTML $_minified -> $_rf"
+        $CMD put $_minified $_rf
+    done
+    
+    for _f in ./$_lib/*.css; do
+        _rf="$_lib/$(basename $_f)"
+        _minified="./src/$_lib/$(basename $_f)"
+        minify $_f > $_minified
+        echo "copying CSS $_minified -> $_rf"
+        $CMD put $_minified $_rf
+    done
+done
+
 
 echo "Reset board"
-$CMD reset
+# $CMD reset

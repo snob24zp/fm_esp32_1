@@ -70,7 +70,7 @@ class Driver():
 
 
 class Stepper():
-    def __init__(self, mode, pin1, pin2, pin3, pin4, delay=2):
+    def __init__(self, pin1, pin2, pin3, pin4, delay=2, mode = HALF_STEP):
         self.mode = mode
         self.pin1 = pin1
         self.pin2 = pin2
@@ -83,13 +83,17 @@ class Stepper():
 
     def step(self, count, direction=1):
         """Rotate count steps. direction = -1 means backwards"""
+        if count < 0:
+            count = abs(count)
+            direction = -1
+
         for x in range(count):
             for bit in self.mode[::direction]:
                 self.pin1(bit[0])
                 self.pin2(bit[1])
                 self.pin3(bit[2])
                 self.pin4(bit[3])
-                time.sleep_ms(self.delay)
+                utime.sleep_ms(self.delay)
         self.reset()
 
     def reset(self):

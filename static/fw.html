@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Обновление ПО</title>
+    <link rel="stylesheet" media="all" href="style.css" />
+    <script type="text/javascript">
+        let chunks = []
+
+        function $(id) {
+            return document.getElementById(id)
+        }
+
+        function get(url, ondone) {
+            if (typeof ondone !== "function") {
+                return
+            }
+            var xhr = new XMLHttpRequest();
+            xhr.timeout = 30000;
+            xhr.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    ondone(JSON.parse(this.responseText));
+                }
+            };
+
+            xhr.open("GET", url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(null)
+        }
+
+        function file_select(input) {
+            let file = input.files[0];
+            let reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload = function() {
+                let xml_parser = new DOMParser();
+                let xml_data = xml_parser.parseFromString(reader.result, "application/xml");
+                if (xml_data.documentElement.nodeName == "parsererror") {
+                    alert("Ошибка открытия файла ПО")
+                    return
+                }
+
+                try {
+                    xml_data = xml_data.documentElement
+                    let fw = xml_data.getElementsByTagName("fw")[0]
+                    $("rst-box").style.top = "415px";
+                    $("fw_new_built").innerText = fw.getElementsByTagName("date")[0].innerHTML
+                    $("fw_new_type").innerText = fw.getElementsByTagName("device")[0].innerHTML
+                    $("fw_new_ver").innerText = fw.getElementsByTagName("version")[0].innerHTML
+                    try {
+                        $("fw_new_branch").innerText = fw.getElementsByTagName("branch")[0].innerHTML
+                        $("fw_new_commit").innerText = fw.getElementsByTagName("commit")[0].innerHTML
+                    } catch (e) {
+                        console.log("FW File does not contains git information:", e)
+                        $("fw_new_branch").innerText = " - "
+                        $("fw_new_commit").innerText = " - "
+                    }
+
+                    let _chunks = xml_data.getElementsByTagName("chunks")[0].childNodes
+
+                    for (var i = 0; i < _chunks.length; i++) {
+                        if (_chunks[i].nodeType == Node.ELEMENT_NODE) {
+                            chunks.push(_chunks[i].textContent)
+                        }
+                    }
+
+                    $("upload_file").style.display = "None";
+                    $("fw_info").style.display = "";
+
+                } catch (e) {
+                    alert("Ошибка открытия файла ПО")
+                }
+            };
+
+            reader.onerror = function() {
+                alert("Ошибка открытия файла: " + reader.error);
+            };
+        }
+
+        function post(uri, data, ondone, onerror) {
+            var xhr = new XMLHttpRequest();
+            xhr.timeout = 30000;
+            xhr.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200 && typeof ondone === "function") {
+                    ondone(JSON.parse(this.responseText));
+                }
+
+                if (this.readyState == 4 && this.status != 200 && typeof onerror === "function") {
+                    onerror()
+                }
+
+            };
+            xhr.open("POST", uri, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(data))
+        }
+
+        function push_fw() {
+            $("rst-box").style.display = "None";
+            $("fw_info").style.display = "None";
+            $("write_status").style.display = "";
+            let err_cnt = 0
+            let len = chunks.length
+            if (len > 0) {
+                post("/fw_upd", 1, function snd(res) {
+                    let idx = res === 'OK' ? 0 : res.chunk
+                    ch = chunks[idx]
+                    console.log("response: ", res)
+                    if (err_cnt > 10) {
+                        alert("Ошибка обновления ПО, обратитесь в тех поддержку")
+                        return
+                    }
+                    set_upl_progress(Number((idx / len) * 100).toFixed(2))
+                    if (ch) {
+                        post("/fw_pkg", ch, (r) => {
+                            snd(r);
+                            err_cnt = 0
+                        }, () => {
+                            console.log("Resend: ", err_cnt)
+                            snd(res);
+                            err_cnt++
+                        })
+                    } else {
+                        $("write_status").style.display = "None";
+                        $("reboot_status").style.display = "";
+                        console.log("Upgrade and reboot")
+                        post("/fw_upd", 2, (_res) => {
+                            console.log("response: ", res)
+                            setTimeout(() => {
+                                post("/fw_upd", 3, () => {
+                                    setTimeout(() => document.location.reload(), 1000)
+                                })
+                            }, 5000)
+                        })
+                    }
+                })
+            }
+        }
+
+        function rst() {
+            if (confirm("Устройство будет сброшено по-умолчанию, продолжить?")) {
+                console.log("Upgrade and reboot")
+                $("rst-box").style.display = "None";
+                $("fw_info").style.display = "None";
+                $("upload_file").style.display = "None";
+                $("reboot_status").style.display = "";
+
+                post("/reset", parseInt($("serial").innerText), () => {
+                    $("fw_info").style.display = "None";
+                    $("write_status").style.display = "None";
+                    $("reboot_status").style.display = "";
+                    setTimeout(() => document.location.reload(), 15000)
+                });
+            }
+        }
+
+        function set_upl_progress(val) {
+            $("fw_upl_prg").value = val
+            $("fw_upl_prg_lbl").innerText = val
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            get("/info", (info) => {
+                let ver = info.version.split(';')
+                $("mac").innerText = info.mac
+                $("fw_cur_type").innerText = info.type
+                $("fw_cur_ver").innerText = ver[0]
+                $("fw_cur_branch").innerText = ver[1]
+                $("fw_cur_commit").innerText = ver[2]
+                $("serial").innerText = info.serial
+            })
+        });
+    </script>
+</head>
+
+<body>
+    <div class="box1" id="main-box">
+        <div class="title">
+            <div class="wifi">
+                <h2>Обновление ПО устройства</h2>
+            </div>
+            <div class="img">
+                <img src=" data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAABmJLR0QA/wD/AP+gvaeTAAABH0lEQVRoge2ZWwrCMBBFDyLuyboBxXX5Wpe6EW27DPXDlPoIrYlNM03nwBBoGLiXaSdlAiPmDBwj7nfG3USsfSsT1wSpJGNkFMyAA1BSv7exogB2RpMzewEGPmPrY6QwyXOf5I7JqCvjjFcbDEijnmS6lquRNZADV2DVvZz/OfP+UYG9lNeX55fe1H3redV6groit55FdUmrdltFVjyrcgGWAUS56gmbGAjtWoNCjUijMmI7RySj54gEtP0OCjUijeSM6DkiAD1HRKJGpKFGAvH33OzXuVZomuZmOteKUZGmuZnOtQZFk5HSrFkfQlpYmNXromdH/Ku2z9j4GJkZM9UVXMzIjQmvy9DkaetmofetjKJrDYqpR071XxZrP20eUscOAdrCjPcAAAAASUVORK5CYII="
+                    alt="">
+            </div>
+        </div>
+
+        <div class="fw_tbl">
+            <table>
+                <tr>
+                    <td>MAC адрес:</td>
+                    <td id="mac"></td>
+                </tr>
+                <tr>
+                    <td>Серийный номер:</td>
+                    <td id="serial"></td>
+                </tr>
+                <tr>
+                    <td>Тип устройства:</td>
+                    <td id="fw_cur_type"></td>
+                </tr>
+                <tr>
+                    <td>Текущая версия:</td>
+                    <td id="fw_cur_ver"></td>
+                </tr>
+                <tr>
+                    <td>Git Branch:</td>
+                    <td id="fw_cur_branch"></td>
+                </tr>
+                <tr>
+                    <td>Git Commit:</td>
+                    <td id="fw_cur_commit"></td>
+                </tr>
+
+            </table>
+        </div>
+
+        <div class="steps">
+            <div id="upload_file">
+                <h4>Открытие файла обновления ПО</h4>
+                <form id="upload_file_frm">
+                    <label class="fw_but subbut">
+                        <input type="file" onchange="file_select(this)" style="display: None;" />
+                        Открыть
+                    </label>
+                </form>
+            </div>
+            <div id="fw_info" style="display: none;">
+                <h4>Информация о файле обновления ПО</h4>
+                <div id="fw_info_frm" class="fw_tbl">
+                    <table>
+                        <tr>
+                            <td>Время:</td>
+                            <td id="fw_new_built"></td>
+                        </tr>
+                        <tr>
+                            <td>Устройство:</td>
+                            <td id="fw_new_type"></td>
+                        </tr>
+                        <tr>
+                            <td>Версия прошивки:</td>
+                            <td id="fw_new_ver"></td>
+                        </tr>
+                        <tr>
+                            <td>Git Branch:</td>
+                            <td id="fw_new_branch"></td>
+                        </tr>
+                        <tr>
+                            <td>Git Commit:</td>
+                            <td id="fw_new_commit"></td>
+                        </tr>
+                    </table>
+                    <button class="subbut" onclick="push_fw()">
+                        <p class="buttext">Записать</p>
+                    </button>
+                </div>
+            </div>
+
+            <div id="write_status" style="display: none;">
+                <h4>Запись прошивки</h4>
+                <div style="text-align: center;">
+                    <progress max="100" value="0" style="width: 320px;" id="fw_upl_prg"></progress>
+                    <p>Загружено на <span id="fw_upl_prg_lbl">0</span>%</p>
+                    <p><b>Во избежание неисправности устройства - не отключайте устройство из сети</b></p>
+                </div>
+            </div>
+            <div id="reboot_status" style="display: none;">
+                <h4>Перезагрузка устройства</h4>
+                <div style="text-align: center;">
+                    <p><b>Во избежание неисправности устройства - не отключайте устройство из сети. Страница обновится автоматически</b></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="box1" style="top: 270px" id="rst-box">
+        <p><a class="rstlnk" href="#" onclick="rst()">Сбросить к заводским параметрам</a></p>
+    </div>
+</body>
+
+</html>
