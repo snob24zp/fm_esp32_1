@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Настройка IP параметров</title>
+    <link rel="stylesheet" media="all" href="style.css" />
+    <script type="text/javascript">
+        var info = null;
+        
+        function $(id) {
+            return document.getElementById(id)
+        }
+
+        function form_to_json() {
+            var obj = {};
+            for (let el of document.querySelectorAll("form input")) {
+                if (el.type === "text" && !el.validity.valid) {
+                    return null;
+                }
+                obj[el.name] = el.value;
+            }
+
+            obj['ip_type'] = document.querySelectorAll("form #ip_type")[0].value == 'static' ? 0 : 1
+            return obj;
+        }
+
+        function get(url, ondone) {
+            if (typeof ondone !== "function") {
+                return
+            }
+            var xhr = new XMLHttpRequest();
+            xhr.timeout = 30000;
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    ondone(JSON.parse(this.responseText));
+                }
+            };
+
+            xhr.open("GET", url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(null)
+        }
+
+
+        function send_ctrl() {
+            if (confirm("Установить выбранные параметры?")) {
+                var obj = form_to_json();
+
+                if (obj === null) {
+                    return
+                }
+
+                obj['token'] = info.mac;
+                srv = new URL(window.location).searchParams.get('server')
+                if (srv) {
+                    console.log('Will use server: ', srv)
+                    obj['server'] = "mqtt://" + srv
+                } else {
+                    obj['server'] = "mqtt://x.ks.ua"
+                }
+
+                $("main-box").innerHTML = "<h2>Подключение..</h2>\
+                            <p class=\"p1\">Через <span id=\"redirect-tmr\">60</span> секунд вы перейдете на сайт для дальнейшей настройки</p>\
+                            <p class=\"p1\">Если этого не произошло, проверьте список устройств в вашем роутере</p>";
+
+                let redir_cnt = 60;
+                setInterval(function () {
+                    $("redirect-tmr").innerHTML = redir_cnt
+                    redir_cnt--;
+                    if (redir_cnt == 0) {
+                        window.location.href = "http://swarm.x.ks.ua"
+                    }
+                }, 1000);
+                console.log(obj);
+
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/ctrl", true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.send(JSON.stringify(obj));
+            }
+        }
+        
+        function lock_staticbox() {
+            for (let el of document.querySelectorAll(".box3 input")) {
+                el.disabled = $("ip_type").options.selectedIndex == 1;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            get("/info", (_info) => {
+                info = _info
+                $("ip_type").value = info.ip_type === 0 ? 'static' : 'dhcp'
+                $("ip").value = info.ip
+                $("gw").value = info.gw
+                $("mask").value = info.mask
+                $("dns").value = info.dns
+
+                $("mac").innerText = info.mac
+                $("ver").innerText = info.version
+                $("serial").innerText = info.serial
+                lock_staticbox()
+            })
+        });
+
+
+    </script>
+</head>
+
+
+<body>
+    <div class="box1" id="main-box">
+        <div class="title">
+
+            <div class="wifi">
+                <h2>Настройка IP параметров</h2>
+            </div>
+            <div class="img">
+                <img
+                    src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAADn0lEQVR4nO2aX4gPURTHvz+y/uym1kpstCEv1q/UvhD7Ql7kSUm0DxKK2n47xetKtkhJks2qffLAbvEga/2LIiJeLCmFJ5awrMLaFj/dOlOnMfP7nXvnzm9md++nzsvMnXvOfGfm/jlnAIfD4XA4HI5wZgOotWRTYJ9qgzimSjpuAfABQNGijQA4KQ1AwBnDOL4AyJfquBHAmOWb59ZqSYCPMWIolOq4hxr9pSd21JINUr/vAcy0IMAn6u+50H8nE8CL6nQ5gD/U6DLs0ioJwECAc8L2DRL/PezpN8EuMwC8jfkW1CQpQCN7+n9psLBtoyyINs2b3wCgPUkBCgkOfGF2VePmVwH4DqAjSQE81uAKgN6E7Bv56BcGvgLAEF1TMQEakBwvNARYAuAdi2vHZBJgHoCXLKYjgfMVEaCaZoYnMewOvcY6Aqgl6wCL5yyAXIQAQ8I4BkwE2GRpwDulIYAS/QG7tjdi+exPqSa2VyrAZnbsMYCbmvabru0SClAF4BrzeZ2OhbEdwI0Qn2/Y9bdDzp8HUGciQDP0+aEhgNotXmD+HgYWPlI6WB+zdC70UhQgR9+572uAxgEpdWyxNcL6+UrHTmRdgHbm5zWABZp+5pb55rl/YwGOAdijaaNCAfrp2CDN/brUkI8oa7EhQDGGSQQYBrASKeKlKMBFAGuRMl4ZAbbS66ljP4UC1CMDeClPg6njOQGQ2huglr+p46U4CHYDWIwMCrDOkgAqK1tuGnwFYD4yJkCOdk5x0uHtgWVtqYXQU80lsFW8EAGSIEyA08z3/bTGBC9FAaooSer7vwVgOiqMl6IAoK3rPRbDJYt1xHEhgGIOgGeB2SOYCvNppnJXl6YdoiLNf5gIoJ7QegpcSrmVYD1tiaOSoT4886NrO20JcJDaqxyeFMlSeCkrpio7ENLGT4qOCqtSw0mkxfdTe5WbkyLdC+QpcL9UtytwPjN1gXzUNxWBzmZoNZXEipRg3ZhFAXTR3Q2qMeZXlktjy0qkrsMw2Q5voTcgcwIUqH0f5JjmA3ZnUYDD1P4R5MRJiCzMmgDTqHymCplSbGWEMiGACbYFuEtjBLdtIcf2TVQBigbWNhEE6DO8+bGo9J43zgSookJKU8C62X2sCTm/KKpDj13YafEHyaB9tiQAp5r1z/8tOE7HVG6zLIUY31TSf4lVpDiaZ39jJW1jtLDJlAD+/r62AqazeZKQK+NP60cJh8PhcDgcmBT8A/LsqzPjVfxbAAAAAElFTkSuQmCC">
+            </div>
+        </div>
+
+        <form action="" method="" onsubmit="return false;">
+
+
+            <table class="box3">
+                <tr class="box2">
+                    <td>
+                        <p>Тип</p>
+                    </td>
+                    <td>
+                        <select id="ip_type" onchange="lock_staticbox()">
+                            <option value="static">Статический IP адрес</option>
+                            <option value="dhcp">DHCP (Автоматическое получение адреса)</option>
+                        </select>
+                    </td>
+                </tr>
+
+                <tr class="box2">
+                    <td>
+                        <p>IP адрес</p>
+                    </td>
+                    <td><input type="text" minlength="7" maxlength="15" size="15"
+                            pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
+                            name="ip" required id="ip" /></td>
+                </tr>
+                <tr class="box2">
+                    <td>
+                        <p>Маска подсети</p>
+                    </td>
+                    <td><input type="text" minlength="7" maxlength="15" size="15"
+                            pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" required
+                            name="mask" value="255.255.255.0" id="mask" /></td>
+                </tr>
+                <tr class="box2">
+                    <td>
+                        <p>Шлюз</p>
+                    </td>
+                    <td><input type="text" minlength="7" maxlength="15" size="15"
+                            pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" required
+                            name="gw" id="gw"/></td>
+                </tr>
+                <tr class="box2">
+                    <td>
+                        <p>DNS</p>
+                    </td>
+                    <td><input type="text" minlength="7" maxlength="15" size="15"
+                            pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" required
+                            name="dns" id="dns" /></td>
+                </tr>
+            </table>
+
+            <button class="subbut" onclick="send_ctrl()">
+                <p class="buttext">Изменить</p>
+            </button>
+        </form>
+
+        <div class="info">
+            <p><a href="fw.html">Обновление прошивки</a></p>
+            <table style="font-size: 10pt; color: #666;">
+                <tr>
+                    <td align="right">MAC:</td>
+                    <td>
+                        <div id="mac"> - </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right"> Серийный номер:</td>
+                    <td>
+                        <div id="serial"> - </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right">Версия:</td>
+                    <td>
+                        <div id="ver"> - </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

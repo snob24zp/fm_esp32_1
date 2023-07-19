@@ -12,8 +12,7 @@ class config_t(json_object):
         self.ap_pwd = ''
         self.sta_ssid = f'AR-{unique_id().hex()}'
         self.sta_pwd = f'12345678'
-        self.sta_params = None
-        self.rotctl_port = 4553
+        self.ifconfig = ('dhcp',)
         self.server = "mqtt://x.ks.ua"
         self.token = unique_id().hex(':')
 

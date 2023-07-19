@@ -22,8 +22,17 @@ class WLAN:
             print(f'Set up AP: [SSID: {self._cfg.ap_ssid} Password: {self._cfg.ap_pwd}]')
         elif self._cfg.wlan_mode == network.STA_IF:
             utime.sleep_ms(1000)
-            self._wlan.connect(self._cfg.sta_ssid,self._cfg.sta_pwd)
             print(f'Connecting: [SSID: {self._cfg.sta_ssid} Password: {self._cfg.sta_pwd}]')
+            self._wlan.connect(self._cfg.sta_ssid,self._cfg.sta_pwd)
+            print(f'ifconfig: {self._cfg.ifconfig}')
+            if self._cfg.ifconfig[0] == 'dhcp':
+                self._wlan.ifconfig('dhcp')
+            elif len(self._cfg.ifconfig) == 4:
+                self._wlan.ifconfig(self._cfg.ifconfig)
+            else:
+                self._cfg.ifconfig[0] = 'dhcp'
+                self._cfg.save()
+                reset()
         else:
             self._cfg.wlan_mode = network.AP_IF
             self._cfg.save()
@@ -53,3 +62,14 @@ class WLAN:
             self._pre_time = utime.ticks_ms()
 
         return self._scan
+    
+    def ifconfig(self, ip = None, mask = None, gw = None, dns = None):
+        if ip is None:
+            return self._wlan.ifconfig()
+        
+        if ip is str and ip == "dhcp":
+            # self._wlan.ifconfig('dhcp')
+            return
+        
+        if ip is str and mask is str and gw is str and dns is str:
+            self._wlan.ifconfig(ip, mask, gw, dns)

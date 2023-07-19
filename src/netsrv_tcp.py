@@ -38,7 +38,7 @@ class netsrv_tcp(netcl):
                     self._socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 15)
 
                 self._socket.bind((self._host, self._port))
-                self._socket.listen(10)
+                self._socket.listen(2)
 
             self.info('Waiting for connection')
             (self._conn, self._addr) = self._socket.accept()
