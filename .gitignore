@@ -1,2 +1,4 @@
 *.bin
 src/static/*
+**/__pycache__/**
+out/**

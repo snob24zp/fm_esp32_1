@@ -1,7 +1,10 @@
 import board
 import time
-import webapp
+import net.webapp as webapp
 from config import config_t
+import net.mqtt as mqtt
+from machine import unique_id
+
 
 def main():
     net = board.network
@@ -13,9 +16,9 @@ def main():
         print('waiting for network...')
         time.sleep(1)
 
-    webapp.init().run(port=80, debug=True)
+    # webapp.init().run(port=80)
 
 
 if __name__ == '__main__':
-    
+
     main()

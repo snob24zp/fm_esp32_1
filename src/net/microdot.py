@@ -1085,8 +1085,8 @@ class Microdot():
         addr = ai[0][-1]
 
         if self.debug:  # pragma: no cover
-            print('Starting {mode} server on {host}:{port}...'.format(
-                mode=concurrency_mode, host=host, port=port))
+            print('Starting {mode} server on {host}:{port}...'.format(mode=concurrency_mode, host=host, port=port))
+
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind(addr)
         self.server.listen(5)
@@ -1184,9 +1184,7 @@ class Microdot():
         if self.shutdown_requested:  # pragma: no cover
             self.server.close()
         if self.debug and req:  # pragma: no cover
-            print('{method} {path} {status_code}'.format(
-                method=req.method, path=req.path,
-                status_code=res.status_code))
+            print('{method} {path} {status_code}'.format(method=req.method, path=req.path,status_code=res.status_code))
 
     def dispatch_request(self, req):
         after_request_handled = False

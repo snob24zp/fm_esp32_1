@@ -1,4 +1,4 @@
-from netcl import netcl
+from net.netcl import netcl
 
 class netsrv(netcl):
     def __init__(self, host: str, port: int, log_prefix='') -> None:

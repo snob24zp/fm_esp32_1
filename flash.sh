@@ -15,7 +15,7 @@ fi
 git submodule init
 git submodule sync
 
-SRCS=(hw .)
+SRCS=(hw net uclient .)
 HTMLS=(static)
 
 CMD="ampy -p $1"

@@ -2,7 +2,7 @@ import socket
 import time
 import sys
 
-from netcl import netcl
+from net.netcl import netcl
 
 
 class netsrv_tcp(netcl):

@@ -1,20 +1,22 @@
 import board
 from machine import unique_id, Timer, reset
-from microdot import Microdot, send_file
+from net.microdot import Microdot, send_file
 from config import config_t
+from log import log
 from version import STATIC_VERSION
 
-
-
 def init():
+    _log = log('WEBAPP')
     webserv = Microdot()
 
     @webserv.route('/')
     def root_hnd(req):
+        _log.info('GET /')
         return send_file('/static/index.html')
 
     @webserv.route('/info', methods=['GET'])
     def info_hnd(req):
+        _log.info('GET /info')
         uid = unique_id()
         mac = uid.hex(':')
         ifconfig = board.network.ifconfig()
@@ -32,6 +34,7 @@ def init():
 
     @webserv.route('/ap_list', methods=['GET'])
     def ap_list_hnd(req):
+        _log.info('GET /ap_list')
         if hasattr(board.network, 'scan'):
             _ap_list = board.network.scan()
             return [bytes.decode(x[0]) for x in _ap_list]
@@ -41,6 +44,7 @@ def init():
 
     @webserv.route('/ctrl', methods=['POST'])
     def ctrl_hnd(req):
+        _log.info(f'POST /ctrl ({req.json})')
         _cfg = config_t()
         if "ap" in req.json and "password" in req.json:
             _cfg.sta_ssid = req.json['ap']
@@ -59,15 +63,18 @@ def init():
                 _cfg.ifconfig = ('dhcp',)
 
         _cfg.save()
-        Timer(0,period=1000, mode=Timer.ONE_SHOT, callback=lambda t:reset())
+        _log.warn('Going to reboot in 1s')
+        Timer(-1,period=1000, mode=Timer.ONE_SHOT, callback=lambda t:reset())
         return "\"OK\""
 
 
     @webserv.route('/<file>', methods=['GET'])
     def file_hnd(req, file):
+        _log.info(f'GET /{file}')
         if '..' in file:
             return 'Not found', 404
 
         return send_file('static/' + file, max_age=86400)
     
+    _log.info('init done')
     return webserv
