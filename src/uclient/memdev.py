@@ -38,7 +38,7 @@ class mem_device(device_base):
             return fd.write(data)
 
     def read_mem(self, addr: int, sz: int) -> bytes:
-        if sz > 1024:
+        if sz > mem_device.MEM_SZ:
             return
 
         fsz = os.stat(self.__fpath)[6]

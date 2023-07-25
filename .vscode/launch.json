@@ -52,5 +52,17 @@
                 "PYTHONPATH": "${workspaceFolder}"
             }
         }
+        {
+            "name": "run file",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            }
+        }
     ]
 }
