@@ -2,3 +2,4 @@
 src/static/*
 **/__pycache__/**
 out/**
+data/**

@@ -12,106 +12,71 @@ except ImportError:
 
 from uclient.device import device_base
 from uclient.memdev import mem_device
-
+from uclient.timedb import tbl_t
 
 class event_device(mem_device):
-    EVT_SZ = 16384
+    EVT_SZ = 512
+    EVT_MAX_CNT = 64 
+    EVT_PER_SEND = 4
     MEM_DIR = 'data'
-    FNAME = f'%d.evt'
+    FNAME = '%d.evt'
+    TBLNAME = '%d.tbl'
     FPATH = f'{MEM_DIR}/{FNAME}'
-
-    class event_t:
-        EVT_FMT = '>LLLH'
-        def __init__(self, reg: int, value:object) -> None:
-            self.tm = int(time.time())
-            self.r = reg
-            self.v = value
-            
-        @staticmethod
-        def parse(raw: bytes):
-            bg = struct.calcsize(event_device.event_t.EVT_FMT)
-            (r, tm, dsz) = struct.unpack(event_device.event_t.EVT_FMT, raw[:bg])
-            data = raw[bg:bg+dsz]
-            evt = event_device.event_t(r, json.loads(data))
-            evt.tm = tm
-            return evt
-
-        def serialize(self):
-            data = json.dumps(self.v).encode()
-            ret = bytearray()
-            ret.extend(struct.pack(event_device.event_t.EVT_FMT, self.r, self.tm,len(data))) # reg;time;data-sz;data
-            ret.extend(data)
-            return ret
-        
-        def __repr__(self) -> str:
-            return f'Event@{self.tm} [[{self.r}] = {self.v}]'
-        
-        def __str__(self) -> str:
-            return self.__repr__()
+    TBLPATH = f'{MEM_DIR}/{FNAME}'
 
     def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
         super().__init__(serial, dtype, regs, status)
-        self.pre_time = ticks_ms()
-        self.__fpath = mem_device.FPATH % serial
+        self._dbs = {}
 
-        if not mem_device.MEM_DIR in os.listdir('.'):
-            os.mkdir(mem_device.MEM_DIR)
+    def set_reg(self, reg, value):
+        if not reg in self._dbs:
+            self._dbs[reg] = tbl_t(f'{self.serial}.{reg}', event_device.EVT_SZ)
 
-    def push_evt(self, evt: event_t) -> int:
-        sz = os.stat(self.__fpath)[6]
+        self._dbs[reg].push(value)
+        return super().set_reg(reg, value)
 
+    def event_hnd(self, topic: str, msg: str):
+        if topic.startswith('events'):
+            reg = int(topic.split('/')[1])
+            (_from, _to) = msg.split(';')
+            if reg in self._dbs:
+                evt = self._dbs[reg].search(int(_from), True)
+                if evt is not None:
+                    count = 1
+                    buf = [{'ts': evt[1].tm, 'r': reg, 'v': evt[2]}]
+                    idx = evt[0] + 1
+                    evt = evt[1:]
 
-        with open(self.__fpath, 'r+b') as fd:
-            fd.seek(addr, 0)
-            return fd.write(data)
+                    while count < event_device.EVT_MAX_CNT and evt[0].tm < int(_to):
+                        evt = self._dbs[reg].at(idx)
+                        if evt[0] is None:
+                            break
 
-    def read_mem(self, addr: int, sz: int) -> bytes:
-        if sz > 1024:
-            return
+                        buf.append({'ts': evt[0].tm, 'r': reg, 'v': evt[1]})
+                        if len(buf) >= event_device.EVT_PER_SEND:
+                            self.pub_dev(topic, buf)
+                            buf = []
 
-        fsz = os.stat(self.__fpath)[6]
-        if addr < fsz:
-            if (addr + sz) > fsz:
-                sz = fsz - addr
-                self.warn(f'Response has been truncated to: {sz}')
+                        count += 1
+                        idx += 1
+                    
+                    if len(buf) > 0:
+                        self.pub_dev(topic, buf)
 
-            with open(self.__fpath, 'rb') as fd:
-                fd.seek(addr, 0)
-                return fd.read(sz)
-        else:
-            self.warn('Position out of file')
+                self.pub_dev(topic, {})
+            return True
 
-        return None
+        return False
+
 
     def hnd_msg(self, topic, msg):
-        if self.on_mem_read(topic, msg):
-            return
-        if self.on_mem_write(topic, msg):
-            return
-
-        return super().hnd_msg(topic, msg)
-
-def evt_test():
-    evt = event_device.event_t(160, {'obj-a': {'str-type': 'str', 'int': 1234, 'float': 12.345}, 'list': [1,2,3,4,5]})
-    print(f'Created {evt} -> {evt.serialize().hex()}')
-    bs = evt.serialize()
-    ret = event_device.event_t.parse(bs)
-    print(f'Parsed {ret}, len: {len(bs)}')
-    assert(ret.r == evt.r)
-    assert(ret.tm == evt.tm)
-    assert(ret.v == evt.v)
-
-    evt = event_device.event_t(170, 431.123)
-    print(f'Created {evt} -> {evt.serialize().hex()}')
-    bs = evt.serialize()
-    ret = event_device.event_t.parse(bs)
-    print(f'Parsed {ret}, len: {len(bs)}')
-    assert(ret.r == evt.r)
-    assert(ret.tm == evt.tm)
-    assert(ret.v == evt.v)
+        if not self.event_hnd(topic, msg):
+            return super().hnd_msg(topic, msg)
 
 
 def test():
+    import base64
+    import random
     from uclient.hub import HUB
 
     try:
@@ -120,7 +85,7 @@ def test():
         import random
 
         def unique_id():
-            return random.randbytes(6)
+            return b'112233'
 
     dev = event_device(12345)
     token = unique_id().hex(":")
@@ -130,10 +95,14 @@ def test():
 
     cl = HUB("x.ks.ua:1883", token, [dev])
     cl.connect()
-
+    
+    pre_time = time.time()
     while True:
         cl.step()
-
+        if time.time() > (pre_time + 15):
+            rnd_b = bytes([ random.randrange(0xff) for _ in range(random.randrange(32)) ])
+            dev.set_reg(8, {'rnd_a': random.randint(0,2**30), 'rnd_data': base64.b64encode(rnd_b).decode()})
+            pre_time = time.time()
 
 if __name__ == '__main__':
-    evt_test()
+    test()

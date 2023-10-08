@@ -18,7 +18,7 @@ sys.path.append(f'{path}{os.path.sep}src')
 sys.path.append(f'{path}{os.path.sep}src{os.path.sep}uclient')
 
 from uclient.hub import HUB
-from uclient.memdev import mem_device
+from uclient.evtdev import event_device
 import user_utils as uu
 from config import config_t
 
@@ -53,7 +53,7 @@ class test_tpl(unittest.TestCase):
         self.__ch.setFormatter(self.__formatter)
         self.logger.addHandler(self.__ch)
         self.logger.setLevel(logging.INFO)
-        self._device = mem_device(self.cfg.serial)
+        self._device = event_device(self.cfg.serial)
 
         self._uclient = HUB(f'{self.cfg.broker["host"]}:{self.cfg.broker["port"]}', self.cfg.token, [self._device], self.cfg.add_hash)
         self._uclient.connect()

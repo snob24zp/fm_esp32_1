@@ -3,6 +3,7 @@ import time
 import net.webapp as webapp
 from config import config_t
 import net.mqtt as mqtt
+import ntptime
 from machine import unique_id
 
 
@@ -16,6 +17,7 @@ def main():
         print('waiting for network...')
         time.sleep(1)
 
+    ntptime.settime()
     # webapp.init().run(port=80)
 
 
