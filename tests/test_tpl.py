@@ -1,5 +1,8 @@
 
+import base64
+import json
 import string
+import traceback
 import unittest
 import sys
 import os
@@ -19,13 +22,15 @@ sys.path.append(f'{path}{os.path.sep}src{os.path.sep}uclient')
 
 from uclient.hub import HUB
 from uclient.evtdev import event_device
+import uclient.aes as aes
 import user_utils as uu
 from config import config_t
 
 
 class test_tpl(unittest.TestCase):
+    MEM_DIR = 'data'
 
-    def setUp(self, server=None, token=None, serial=None, user=None, pwd=None, skip_add_hash=False):
+    def setUp(self, dtype=event_device, server=None, token=None, serial=None, user=None, pwd=None, dargs = {}):
         super().setUp()
         self.cfg = config_t()
         if token is not None:
@@ -42,36 +47,40 @@ class test_tpl(unittest.TestCase):
 
         if pwd is not None:
             self.cfg.pwd = pwd
-
+        
+        for _file in os.listdir(f'./{test_tpl.MEM_DIR}'):
+            os.unlink(f'./{test_tpl.MEM_DIR}/{_file}')
+        
+        self.cfg.device_id = base64.b64decode(self.cfg.device_id)
         self.cfg.user_key = uu.create_key(self.cfg.user, self.cfg.pwd)
 
         self.logger = logging.getLogger('TEST')
         self.__ch = logging.StreamHandler()
         self.__ch.setLevel(logging.INFO)
-        self.__formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        self.__formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         self.__ch.setFormatter(self.__formatter)
         self.logger.addHandler(self.__ch)
         self.logger.setLevel(logging.INFO)
-        self._device = event_device(self.cfg.serial)
+        self._device = dtype(serial = self.cfg.serial, **dargs)
 
-        self._uclient = HUB(f'{self.cfg.broker["host"]}:{self.cfg.broker["port"]}', self.cfg.token, [self._device], self.cfg.add_hash)
+        self._uclient = HUB(f'{self.cfg.broker["host"]}:{self.cfg.broker["port"]}', self.cfg.token, [self._device])
         self._uclient.connect()
 
         self.__hub_thread = threading.Thread(target=self._ucl_step_thread, name="hub-thread", daemon=True)
         self.__hub_thread.start()
 
         self.wait_condition(lambda: self._uclient.state == HUB.REG_DONE, 60)
-        self.mqtt_enable(skip_add_hash)
+        self.mqtt_enable()
 
     def _ucl_step_thread(self):
         while True:
-            try:
-                if self._uclient is not None:
-                    self._uclient.step()
-            except Exception as ex:
-                self.logger.error(ex)
-                break
+            #try:
+            if self._uclient is not None:
+                self._uclient.step()
+            # except Exception as ex:
+            #     ex_type, ex, tb = sys.exc_info()
+            #     traceback.print_tb(tb)
+            #     break
 
     @staticmethod
     def int2float(b):
@@ -95,7 +104,7 @@ class test_tpl(unittest.TestCase):
         except Exception:
             return 0
 
-    def mqtt_enable(self, skip_add_hash=False, skip_add_user=True):
+    def mqtt_enable(self,  skip_add_user=True):
         self.client = mqtt.Client(f"{self.cfg.token}-tester-{'%04x' % random.randrange(16**4)}")
         self.client.on_connect = self.__on_connect
         self.client.on_message = self.__on_message
@@ -108,43 +117,39 @@ class test_tpl(unittest.TestCase):
         self.__client_thread.start()
 
         self.__dev_cbks = {}
-        self.__hub_cbks = {
-            'add': self.__on_add_msg
-        }
+        self.__hub_cbks = {}
         self.__direct_cbks = {}
-        self.add_hash = None
-        self.wait_condition(lambda: self.is_connected, 5)
-        if not skip_add_hash:
-            self.publish_hub('add', 30)
-            self.wait_condition(lambda: self.add_hash is not None, 30)
-        
+        self.wait_condition(lambda: self.is_connected,20)
         if not skip_add_user:
-            self.add_user(self.cfg.user, self.cfg.pwd)
+            self.add_user(self.cfg.user, self.cfg.pwd, key = self.cfg.device_id)
         time.sleep(1)
 
-    def add_user(self, username, pwd, pm=255):
+    def add_user(self, username, pwd, pm=255, acls = [-1], key = None):
         user_res = None
 
         def on_user_add(topic, value):
             nonlocal user_res
-            user_res = int(value)
+            user_res = value
+            
+        if key is None:
+            key = self.cfg.user_key
 
         self.subscribe_device('user/add', on_user_add)
         user_id = uu.create_key(username, pwd)
-        self.logger.info(
-            f"Create user: {username} pwd: {pwd} user_id: {user_id.hex()}")
-        cu_b64 = uu.create_user(user_id, pm, username)
-        user_res = None
-        self.publish_device(
-            'user/add', cu_b64.decode('utf-8'), self.cfg.user_key)
-        self.wait_condition(lambda: user_res is not None, 30)
-        self.logger.info(f"User created with: {user_res} position", )
-        return (user_res, user_id)
+        self.logger.info(f"Create user: {username} pwd: {pwd} user_id: {user_id.hex()}")
+        cu = uu.create_user(user_id, pm, username, acls)
+        cu_b64 = base64.b64encode(aes.encrypt(cu, key)).decode()
 
-    def __on_add_msg(self, topic, msg):
-        if len(msg) == 64 and all(c in string.hexdigits for c in msg):
-            self.logger.info(f"Got '{topic}' hash: {msg}")
-            self.add_hash = bytes.fromhex(msg)
+        user_res = None
+        self.publish_device('user/add', cu_b64, key)
+        self.wait_condition(lambda: user_res is not None, 30)
+
+        self.assertTrue(uu.check(self.cfg.device_id, user_res) is not None)
+        user_res = aes.decrypt(base64.b64decode(user_res.split('.')[0]),self.cfg.device_id)
+        self.assertTrue(user_res == b'"OK"')
+
+        self.logger.info(f"User created: {user_res.decode()}", )
+
 
     def __on_connect(self, client, userdata, flags, rc):
         self.logger.info(f"Connected with result code: {rc}")
@@ -176,20 +181,12 @@ class test_tpl(unittest.TestCase):
         hub = topic[0]
         cmd = topic[1]
 
-        self.logger.debug(
-            f"Event: {{ hub: {hub}, cmd/dev: {cmd}, value: {value} }}")
+        self.logger.debug(f"Event: {{ hub: {hub}, cmd/dev: {cmd}, value: {value} }}")
 
         if cmd.isnumeric() and int(cmd) == self.cfg.serial:
             cmd = topic[2]
             if cmd in self.__dev_cbks and callable(self.__dev_cbks[cmd]):
-                if self.add_hash is not None:
-                    value = uu.check(self.add_hash, value)
-                    if value is not None:
-                        self.__dev_cbks[cmd](cmd, value)
-                    else:
-                        self.logger.debug('Message not authorized')
-                    return
-                self.__dev_cbks[cmd](cmd, value)
+                self.__dev_cbks[cmd](cmd, json.loads(value))
                 return
 
         if cmd in self.__hub_cbks and callable(self.__hub_cbks[cmd]):
@@ -265,7 +262,7 @@ class test_tpl(unittest.TestCase):
 
         if key is not None:
             value = f"{value}.{uu.sign(key, value)}"
-        self.client.publish(f">{self.cfg.token}/{self.cfg.serial}/{topic}", value)
+        self.client.publish(f">{self.cfg.token}/{self.cfg.serial}/{topic}", json.dumps(value))
 
     def publish_hub(self, topic: str, value, prefix='>'):
         """

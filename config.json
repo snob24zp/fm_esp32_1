@@ -1,17 +1,12 @@
 {
-    "add_hash": "668c227dd753261970f6266048f14ee9630922b2ff523f7fd96dd0928a28f37b",
     "broker": {
         "host": "x.ks.ua",
         "port": 1883
     },
     "cfg_file": "config.json",
+    "device_id": "moOGHrmlk8Alu5z1pU1osF8MthsVHBRi5gZ/YnCdCrM=",
     "fw_crypt": "dWNsaWVudC10ZXN0LWRldg==",
     "fw_file": "./tests/dev_uclient_test.latest.uebf",
-    "log_srv": {
-        "host": "elastic.x.ks.ua",
-        "pwd": "",
-        "user": "logs"
-    },
     "pwd": "11223344",
     "serial": 3996365522,
     "token": "48:3f:da:55:07:5b",

@@ -20,7 +20,7 @@ class memops_test(test_tpl):
     def on_resp(self, topic: str, value: str):
         self.value = value
         self.topic = topic
-        
+
     def read_mem(self):
         data = random.randbytes(64)
         self._device.write_mem(32,data)
@@ -31,7 +31,7 @@ class memops_test(test_tpl):
         (sz, ret) = self.value.split(';')
         self.assertTrue(int(sz) == 64)
         self.assertTrue(data == base64.b64decode(ret))
-        
+
     def write_mem(self):
         data = random.randbytes(64)
         self.subscribe_device('write', self.on_resp)

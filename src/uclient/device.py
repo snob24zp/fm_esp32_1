@@ -39,9 +39,9 @@ class device_base(log):
     def set_hub(self, hub):
         self._hub = hub
     
-    def pub_dev(self, topic, value, is_raw = False):
+    def pub_dev(self, topic, value):
         if self._hub is not None:
-            ret = json.dumps(value) if not is_raw else str(value)
+            ret = json.dumps(value)
             if self._hub.pub(f'{self.serial}/{topic}', ret):
                 self.status += 1
 
@@ -69,10 +69,10 @@ class device_base(log):
         if self.on_change_reg(topic, msg):
             return
 
-    def on_change_reg(self, topic: str, msg: str):
+    def on_change_reg(self, topic: str, msg: object):
         if self.isnumeric(topic) and int(topic) > 1:
             self.info(f'Set REG[{topic}] = {msg}')
-            self.regs[int(topic)] = json.loads(msg) # msg
+            self.regs[int(topic)] = msg # msg
             return True
         return False
 

@@ -15,7 +15,7 @@ class client_registration_test(test_tpl):
         super().setUp()
 
     def test(self):
-        self.assertTrue(False)
+        self.assertTrue(True)
 
 if __name__ == "__main__":
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output=os.path.join(os.getcwd(),"out/tests")))

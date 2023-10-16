@@ -39,14 +39,13 @@ def encrypt(data: bytes, shared_key: bytes, hmac_key: bytes, iv_bytes: bytes = b
     data +=  bytes(pad * [pad])
     cypher = AES.new(shared_key, AES.MODE_CBC, iv_bytes)
     encrypted_data = cypher.encrypt(data)
-    iv_data = iv_bytes + encrypted_data
-    sig = hmac.new(hmac_key, iv_data, HASH_ALGO).digest()
+
+    sig = hmac.new(hmac_key, encrypted_data, HASH_ALGO).digest()
     return (encrypted_data, sig)
 
 def decrypt(encrypted_data: bytes, signature, shared_key, hmac_key,  iv_bytes: bytes = bytes(16 * [0])):
     """verify HMAC-SHA256 signature and decrypt data with AES-CBC"""
-    iv_data = iv_bytes + encrypted_data
-    if not compare_mac(hmac.new(hmac_key, iv_data, HASH_ALGO).digest(), signature):
+    if not compare_mac(hmac.new(hmac_key, encrypted_data, HASH_ALGO).digest(), signature):
         raise AuthenticationError("message authentication failed")
     cypher = AES.new(shared_key, AES.MODE_CBC, iv_bytes)
     data = cypher.decrypt(encrypted_data)

@@ -1,10 +1,7 @@
 import board
 import time
-import net.webapp as webapp
 from config import config_t
-import net.mqtt as mqtt
 import ntptime
-from machine import unique_id
 
 
 def main():
@@ -22,5 +19,4 @@ def main():
 
 
 if __name__ == '__main__':
-
     main()

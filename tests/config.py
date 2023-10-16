@@ -1,5 +1,7 @@
 
 
+import base64
+import hashlib
 import os
 import sys
 
@@ -17,14 +19,9 @@ class config_t(json_object):
     DEFAULT_SERIAL = 3996365522
     DEFAULT_USER = "admin@admin.com"
     DEFAULT_PASSWORD = "11223344"
-    DEFAULT_LOG_SRV = {
-        "host": "elastic.x.ks.ua",
-        "user": "logs",
-        "pwd": ""
-    }
+    DEFAULT_DEVICE_ID = hashlib.sha256(b'DUT').digest()
     DEFAULT_FW_FILE = './tests/dev_uclient_test.latest.uebf'
     DEFAULT_FW_CRYPT_KEY = "dWNsaWVudC10ZXN0LWRldg=="
-    DEFAULT_ADD_HASH = '668c227dd753261970f6266048f14ee9630922b2ff523f7fd96dd0928a28f37b'
 
     def __init__(self, cfg_file="config.json"):
 
@@ -34,8 +31,7 @@ class config_t(json_object):
         self.serial = self.DEFAULT_SERIAL
         self.user = self.DEFAULT_USER
         self.pwd = self.DEFAULT_PASSWORD
-        self.add_hash = self.DEFAULT_ADD_HASH
-        self.log_srv = self.DEFAULT_LOG_SRV
+        self.device_id = self.DEFAULT_DEVICE_ID
         self.fw_file = self.DEFAULT_FW_FILE
         self.fw_crypt = self.DEFAULT_FW_CRYPT_KEY
 

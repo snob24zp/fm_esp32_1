@@ -90,9 +90,6 @@ def test():
     dev = event_device(12345)
     token = unique_id().hex(":")
 
-    # sha256("ap0\0y78bug57\0")
-    # add_hash = "668c227dd753261970f6266048f14ee9630922b2ff523f7fd96dd0928a28f37b"
-
     cl = HUB("x.ks.ua:1883", token, [dev])
     cl.connect()
     

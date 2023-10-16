@@ -43,7 +43,7 @@ class reg_value_exchange_test(test_tpl):
     def srv_non_int_msg(self):
         self.value = {'rnd-a': random.randint(0, 65535), 'rnd-b': random.randint(0, 65535) }
         self.logger.info(f'------- 3. Set register 9 to value {self.value} from server side')
-        self.publish_device('9', json.dumps(self.value))
+        self.publish_device('9', self.value)
         self.wait_condition(lambda: 9 in self._device.regs, 10)
         self.assertTrue(self._device.regs[9] == self.value)
         
@@ -54,7 +54,7 @@ class reg_value_exchange_test(test_tpl):
         self._device.set_reg(9, self.value)
         self.wait_condition(lambda: self.rett is not None, 10)
         self.assertTrue(self.rett == '9')
-        self.assertTrue(self.value == json.loads(self.retv))
+        self.assertTrue(self.value == self.retv)
 
     def test(self):
         self.srv_side()

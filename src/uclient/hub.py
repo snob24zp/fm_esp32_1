@@ -32,7 +32,7 @@ class HUB(log):
 
     VERSION = STATIC_VERSION     # Версия эмулятора
 
-    def __init__(self, server, token, devices, add_hash=None):
+    def __init__(self, server, token, devices):
         '''
         Класс клиента
         '''
@@ -46,14 +46,11 @@ class HUB(log):
             self.devices.append(dev)
             dev.set_hub(self)
 
-        self.add_hash = add_hash
-
         self.root_hub_hnd = [
             ["time", self.__time_hnd, '/'],
             ["lifetime", self.__lifetime_hnd, '>'],
             ["error", self.__error_hnd, '>'],
-            ["ping", self.__ping_hnd, '>'],
-            ["add", self.__add_hnd, '>'],
+            ["ping", self.__ping_hnd, '>']
         ]
 
         self._on_chg_state = None
@@ -141,18 +138,6 @@ class HUB(log):
         self.info("Ping command")
         self.pub_hub("ping", "ok")
 
-    def __add_hnd(self, value: str):
-        '''
-        Обработчик топика /{hub}/add
-        '''
-        try:
-            if self.add_hash is not None and value.isnumeric():
-                timeout = int(value)
-                self.info(f"Add command: {{ timeout: {timeout} }}")
-                self.pub_hub("add", self.add_hash)
-        except ValueError as ex:
-            self.warn("Error: { value: %s, error: %s }" % (value, ex))
-
     def __send_reg(self):
         '''
         Отправляет {hub} на регистрацию
@@ -237,7 +222,7 @@ class HUB(log):
 
             for dev in self.devices:
                 if topic.startswith(f'{dev.serial}/'):
-                    dev.hnd_msg(topic[len(f'{dev.serial}/'):], value)
+                    dev.hnd_msg(topic[len(f'{dev.serial}/'):], json.loads(value))
 
         # except Exception as e:
         #     self.err(f"on_msg exception: {e}")
@@ -391,9 +376,7 @@ def test():
     token = unique_id().hex(":")
 
     # sha256("ap0\0y78bug57\0")
-    add_hash = "668c227dd753261970f6266048f14ee9630922b2ff523f7fd96dd0928a28f37b"
-
-    cl = HUB("x.ks.ua:1883", token, [dev], add_hash)
+    cl = HUB("x.ks.ua:1883", token, [dev])
     cl.connect()
 
     while True:

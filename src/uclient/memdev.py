@@ -70,7 +70,7 @@ class mem_device(device_base):
             try:
                 data = self.read_mem(int(addr), int(sz))
                 if data is not None:
-                    self.pub_dev(topic, f'{len(data)};{base64.b64encode(data).decode()}', True)
+                    self.pub_dev(topic, f'{len(data)};{base64.b64encode(data).decode()}')
             except Exception as ex:
                 self.err('read-mem exception', ex)
         
@@ -81,7 +81,7 @@ class mem_device(device_base):
         if topic == 'write':
             (addr, data) = value.split(';')
             data = base64.b64decode(data)  # test if put wrong b64 data
-            self.pub_dev(topic, f'{addr};{self.write_mem(int(addr), data)}', True)
+            self.pub_dev(topic, f'{addr};{self.write_mem(int(addr), data)}')
             return True
         return False
 
@@ -99,9 +99,6 @@ def test():
 
     dev = mem_device(12345)
     token = unique_id().hex(":")
-
-    # sha256("ap0\0y78bug57\0")
-    # add_hash = "668c227dd753261970f6266048f14ee9630922b2ff523f7fd96dd0928a28f37b"
 
     cl = HUB("x.ks.ua:1883", token, [dev])
     cl.connect()

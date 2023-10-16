@@ -7,7 +7,6 @@ import time
 import random
 import unittest
 import xmlrunner
-import json
 
 from test_tpl import test_tpl
 
@@ -27,9 +26,9 @@ class events_test(test_tpl):
 
         def on_evts(topic, msg):
             nonlocal found_end, evts
-            found_end = msg == '{}'
+            found_end = msg == {}
             if not found_end:
-                evts.extend(json.loads(msg))
+                evts.extend(msg)
 
         self.subscribe_device('events/9', on_evts)
         self.publish_device('events/9', f'{_from};{_to}')
