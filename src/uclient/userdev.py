@@ -71,6 +71,7 @@ class user_device(device_base):
     FNAME = f'%d.users'
     FPATH = f'{MEM_DIR}/{FNAME}'
     ADD_FMT = '>32sB64s'
+    MAX_USER_CNT = 32
 
     def __init__(self, device_id: bytes,  serial: int, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
         super().__init__(serial, dtype, regs, status)
@@ -126,6 +127,10 @@ class user_device(device_base):
             #2. unpack via struct
             #3. apply to user_list
             
+            if len(self.__user_list) > user_device.MAX_USER_CNT:
+                self.err('Maximum user count is reached')
+                return True
+
             key = self._device_id
             if usr is None and len(self.__user_list) > 0:
                 self.err('Unknown user tries to add new user')
