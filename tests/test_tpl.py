@@ -13,6 +13,7 @@ import logging
 import struct
 
 import paho.mqtt.client as mqtt
+from collections.abc import Callable
 
 
 path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -30,7 +31,7 @@ from config import config_t
 class test_tpl(unittest.TestCase):
     MEM_DIR = 'data'
 
-    def setUp(self, dtype=event_device, server=None, token=None, serial=None, user=None, pwd=None, dargs = {}):
+    def setUp(self, dtype=event_device, server=None, token=None, serial=None, user=None, pwd=None, skip_add_user = True, dargs = {}):
         super().setUp()
         self.cfg = config_t()
         if token is not None:
@@ -70,7 +71,7 @@ class test_tpl(unittest.TestCase):
         self.__hub_thread.start()
 
         self.wait_condition(lambda: self._uclient.state == HUB.REG_DONE, 60)
-        self.mqtt_enable()
+        self.mqtt_enable(skip_add_user = skip_add_user)
 
     def _ucl_step_thread(self):
         while True:
@@ -218,6 +219,21 @@ class test_tpl(unittest.TestCase):
         self._uclient = None
         return super().tearDown()
 
+
+    def gen_pwd(self, pwd_len=8):
+        return ''.join(random.choices(string.ascii_lowercase + string.digits, k=pwd_len))
+
+    def gen_username(self):
+        ADJECTIVES = ['Affable', 'Agreeable', 'Amiable', 'Charming', 'Polite',
+                  'Likeable', 'Gregarious', 'Considerate', 'Sympathetic', 'Understanding']
+        NAMES = ['James', 'Mary', 'Robert', 'Patricia', 'John', 'Jennifer',
+                'Michael', 'Linda', 'William', 'Elizabeth', 'David', 'Barbara']
+        MAIL_HOSTS = ['gmail.com', 'x.ks.ua', 'dlab.pw', 'hotmail.com',
+                    'outlook.com', 'vegaiot.com', 'i.ua', 'tlc.ks.ua']
+
+        return f"{random.choice(ADJECTIVES).lower()}.{random.choice(NAMES).lower()}@{random.choice(MAIL_HOSTS)}"
+
+
     def subscribe(self, topic: str, cb):
         '''
         Subscribe to direct broker topic
@@ -234,7 +250,7 @@ class test_tpl(unittest.TestCase):
         '''
         self.client.publish(topic, value.encode('utf-8'), qos=1)
 
-    def subscribe_device(self, topic: str, cb):
+    def subscribe_device(self, topic: str, cb: Callable):
         """
         Subscribe to device topic
         :topic: Device topic
@@ -242,6 +258,23 @@ class test_tpl(unittest.TestCase):
         """
         if cb is not None and callable(cb):
             self.__dev_cbks[topic] = cb
+
+    def subscribe_device_encrypted(self, topic: str, cb: Callable, key: bytes = None):
+        """
+        Subscribe to device topic
+        :topic: Device topic
+        :cb: Callback
+        """
+        if key is None:
+            key = self.cfg.device_id
+        
+        def __cb__(topic, msg):
+            nonlocal self, key, cb
+            self.assertTrue(uu.check(self.cfg.device_id, msg) is not None)
+            msg = aes.decrypt(base64.b64decode(msg.split('.')[0]),key)
+            cb(topic, json.loads(msg.decode()))
+            
+        self.subscribe_device(topic, __cb__)
 
     def subscribe_hub(self, topic: str, cb):
         """
@@ -263,6 +296,16 @@ class test_tpl(unittest.TestCase):
         if key is not None:
             value = f"{value}.{uu.sign(key, value)}"
         self.client.publish(f">{self.cfg.token}/{self.cfg.serial}/{topic}", json.dumps(value))
+
+    def publish_device_encrypted(self, topic: bytes, value: bytes, key: bytes = None):
+        if isinstance(value, str):
+            value = value.encode()
+
+        if key is None:
+            key = self.cfg.user_key
+
+        value = base64.b64encode(aes.encrypt(value, key)).decode()
+        self.publish_device(topic, value, key)
 
     def publish_hub(self, topic: str, value, prefix='>'):
         """

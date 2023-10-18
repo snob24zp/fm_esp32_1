@@ -183,8 +183,9 @@ class user_device(device_base):
             msg = aes.decrypt(base64.b64decode(msg), usr.uid).decode()
             if msg == 'list':
                 for _usr in self.__user_list:
-                    self.pub_dev(topic, aes.encrypt(json.dumps([_usr.uid, _usr.perm, _usr.name, _usr.acl]).encode(), self._device_id))
-                self.pub_dev(topic, aes.encrypt(json.dumps([]).encode(), self._device_id))
+                    ret = {'u': base64.b64encode(_usr.uid).decode(), 'n': _usr.name.strip(b'\0').decode(), 'p': _usr.perm, 'a': _usr.acl }
+                    self.pub_dev(topic, aes.encrypt(json.dumps(ret).encode(), usr.uid))
+                self.pub_dev(topic, aes.encrypt(json.dumps({}).encode(), usr.uid))
         return False
 
     def on_user_remove(self, topic, msg, usr):
