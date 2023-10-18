@@ -227,6 +227,10 @@ class HUB(log):
         # except Exception as e:
         #     self.err(f"on_msg exception: {e}")
 
+    def register_hub_cb(self, topic, cb):
+        if callable(cb):
+            self.root_hub_hnd.append((topic, cb, '>'))
+
     def step(self):
         '''
         Тред обработки состояний клиента

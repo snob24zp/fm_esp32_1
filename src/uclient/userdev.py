@@ -64,7 +64,11 @@ class user:
         return struct.pack(user.FMT, self.uid, self.perm, self.name, acl_offset)
     
     def __str__(self) -> str:
-        return f'{self.name} ({self.uid.hex()})'
+        name = self.name.strip(b'\0').decode()
+        return f'{name} ({self.uid.hex()})'
+    
+    def __repr__(self) -> str:
+        return self.__str__()
 
 class user_device(device_base):
     MEM_DIR = 'data'
@@ -88,7 +92,7 @@ class user_device(device_base):
             os.mkdir(user_device.MEM_DIR)
  
         self.__user_list = user_device.load_db(serial)
-
+        self._hub.register_hub_cb('user/dev',self.on_user_dev)
 
     @staticmethod
     def load_db(serial):
@@ -191,19 +195,35 @@ class user_device(device_base):
     def on_user_remove(self, topic, msg, usr):
         if topic == 'user/remove':
             if usr is None:
+                self.err('User auth failed')
                 return True
-            uid = aes.decrypt(base64.b64decode(msg), usr.uid).decode()
-            for _usr in enumerate(self.__user_list):
+            
+            if (usr.perm & user_device.PERM_USERS) == 0:
+                self.err(f"User ({usr}) don\'t have permission to remove users")
+                return True
+
+            uid = aes.decrypt(base64.b64decode(msg), usr.uid)
+
+            if usr.uid == uid:
+                self.err('User can\'t remove himself')
+                return True
+            
+            for _usr in self.__user_list:
                 if _usr.uid == uid:
                     self.__user_list.remove(_usr)
-                    self.pub_dev(topic, aes.encrypt('"OK"'.encode(), self._device_id))
+                    self.pub_dev(topic, aes.encrypt('"OK"'.encode(), usr.uid))
                     break
+            return True
 
         return False
     
     def on_user_dev(self, topic,  msg):
         # on root topic ('>user/dev')
         if topic == 'user/dev':
+            for _usr in self.__user_list:
+                if base64.b64decode(msg) == hashlib.sha256(_usr.uid).digest():
+                    self._hub.pub_hub("user/dev", f"{self._hub.token}/{self.serial}")
+                    break
             return True
         return False
 
