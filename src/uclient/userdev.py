@@ -72,6 +72,14 @@ class user_device(device_base):
     FPATH = f'{MEM_DIR}/{FNAME}'
     ADD_FMT = '>32sB64s'
     MAX_USER_CNT = 32
+    
+    PERM_REG_WR = 0x02
+    PERM_MEM_RD = 0x04
+    PERM_MEM_WR = 0x08
+    PERM_FWUPD  = 0x10
+    PERM_EVENTS = 0x20
+    PERM_USERS  = 0x40
+    PERM_F_RES  = 0x80
 
     def __init__(self, device_id: bytes,  serial: int, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
         super().__init__(serial, dtype, regs, status)
@@ -127,7 +135,7 @@ class user_device(device_base):
             #2. unpack via struct
             #3. apply to user_list
             
-            if len(self.__user_list) > user_device.MAX_USER_CNT:
+            if len(self.__user_list) >= user_device.MAX_USER_CNT:
                 self.err('Maximum user count is reached')
                 return True
 
@@ -137,6 +145,10 @@ class user_device(device_base):
                 return True
             elif usr is not None:
                 key = usr.uid
+
+            if  usr is not None and (usr.perm & user_device.PERM_USERS) == 0:
+                self.err(f'User ({usr.name.decode()}) don\'t have permission to add new users')
+                return True
 
             sz = struct.calcsize(user_device.ADD_FMT)
             if len(msg) < sz:
@@ -160,7 +172,13 @@ class user_device(device_base):
     def on_user_list(self, topic, msg, usr):
         if topic == 'user/list':
             if usr is None:
+                self.err('User auth failed')
                 return True
+
+            if (usr.perm & user_device.PERM_USERS) == 0:
+                self.err(f'User ({usr.name}) don\'t have permission to add new users')
+                return True
+
 
             msg = aes.decrypt(base64.b64decode(msg), usr.uid).decode()
             if msg == 'list':

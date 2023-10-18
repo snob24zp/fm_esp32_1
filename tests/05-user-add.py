@@ -47,25 +47,42 @@ class user_add_test(test_tpl):
         self.logger.info('Admin user has been added')
         time.sleep(1)
     
-    def add_32user(self):
-        for i in range(32):
+    def add_30user(self):
+        for i in range(30):
             self.add_user(self.gen_username(), self.gen_pwd())
         time.sleep(1)
 
-    def test(self):
-        self.add_admin_user()
-        self.add_32user()
+    def add_without_perm_user(self):
+        _usr = (self.gen_username(), self.gen_pwd())
+        _usr = (_usr[0], _usr[1],  uu.create_key(_usr[0],_usr[1]))
+        self.add_user(_usr[0], _usr[1], 0x02)
+        _pass = True
         try:
-            self.add_admin_user()
-            self.assertTrue(False)
+            self.add_user(self.gen_username(), self.gen_pwd(), key = _usr[2])
+            _pass = False
         except:
             pass
 
-        # self.add_wrong_namelen_user()
-        # time.sleep(10)
-        # self.add_with_null_perm_user()
-        # time.sleep(10)
-        # self.add_without_perm_user()
+        self.assertTrue(_pass)
+
+    def add_more_than_max(self):
+        _pass = True
+        try:
+            self.add_user(self.gen_username(), self.gen_pwd())
+            _pass = False
+        except:
+            pass
+
+        self.assertTrue(_pass)
+
+
+    def test(self):
+        self.add_admin_user()
+
+        self.add_without_perm_user()
+        self.add_30user()
+        self.add_more_than_max()
+
 
 
 if __name__ == "__main__":
