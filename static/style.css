@@ -3,19 +3,42 @@ body {
     font-family: Arial, sans-serif;
 }
 
+.flexbox-panel {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: normal;
+    align-content: normal;
+}
+
+.flex-item:nth-child(1) {
+    display: block;
+    flex-grow: 0;
+    flex-shrink: 1;
+    flex-basis: auto;
+    align-self: auto;
+    order: 0;
+}
+
+.flex-item:nth-child(2) {
+    display: block;
+    flex-grow: 0;
+    flex-shrink: 1;
+    flex-basis: auto;
+    align-self: auto;
+    order: 0;
+}
+
+
 .box1 {
     background: #e2e2e2;
     border-radius: 4px;
     padding: 10px;
     border: 0px solid #f0f0f0;
-    position: absolute;
-    top: 12px;
-    left: 50%;
-    margin-bottom: 12px;
-    margin-right: -50%;
-    transform: translate(-50%, 0%);
     box-shadow: 0px 0px 3px 0px rgba(0, 0, 0, 0.75);
-    width: 480px;
+    margin-left: 4px;
+    margin-right: 4px;
 }
 
 .pb {
@@ -54,6 +77,28 @@ body {
 
 .rstlnk:active {
     color: #333333;
+}
+
+.menu {
+    height: fit-content;
+    width: 200px;
+}
+
+.menu a {
+    font-size: 10pt;
+    margin: 8px;
+    font-family: Arial, sans-serif;
+    color: #333333;
+    text-decoration: none;
+}
+
+.menu a:hover {
+    color: #666;
+    text-decoration: none;
+}
+
+.main {
+    width: 480px;
 }
 
 .box2 {
@@ -243,6 +288,7 @@ img {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }

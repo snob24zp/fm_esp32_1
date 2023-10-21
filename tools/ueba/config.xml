@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <log>
+    <path>\log</path>
+    <file>log_</file>
+    <level>info</level>
+  </log>
+  <devs>
+    <dev_ar>
+      <signature>5523</signature>
+      <spm_pagesize>512</spm_pagesize>
+      <page_count>256</page_count>
+      <key>jxoSgcaeB5+aBrgu95RfSQ==</key>
+    </dev_ar>
+  </devs>
+</root>

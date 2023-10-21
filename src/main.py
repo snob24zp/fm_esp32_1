@@ -13,8 +13,9 @@ def main():
     while not net.is_connected():
         print('waiting for network...')
         time.sleep(1)
-
-    ntptime.settime()
+    
+    if cfg.wlan_mode == 0:
+        ntptime.settime()
     # webapp.init().run(port=80)
 
 

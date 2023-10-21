@@ -65,3 +65,12 @@ def tee(fname, data, offset = 0):
             fd.seek(offset)
         return fd.write(data)
 
+def free(path):
+    ret = os.statvfs(path)
+    return (ret[0] * ret[3]), (ret[0] * ret[2]) 
+
+def format(_f):
+    import machine
+    for idx in range(_f.ioctl(4, 0)):
+        print(f'Erase: {idx} page', _f.ioctl(6, idx) == 0)
+    machine.reset()
