@@ -92,7 +92,10 @@ class user_device(device_base):
             os.mkdir(user_device.MEM_DIR)
  
         self.__user_list = user_device.load_db(serial)
-        self._hub.register_hub_cb('user/dev',self.on_user_dev)
+    
+    def set_hub(self, hub):
+        super().set_hub(hub)
+        self._hub.register_root_cb('>user/dev',self.on_user_dev)
 
     @staticmethod
     def load_db(serial):
@@ -219,13 +222,10 @@ class user_device(device_base):
     
     def on_user_dev(self, topic,  msg):
         # on root topic ('>user/dev')
-        if topic == 'user/dev':
-            for _usr in self.__user_list:
-                if base64.b64decode(msg) == hashlib.sha256(_usr.uid).digest():
-                    self._hub.pub_hub("user/dev", f"{self._hub.token}/{self.serial}")
-                    break
-            return True
-        return False
+        for _usr in self.__user_list:
+            if base64.b64decode(msg) == hashlib.sha256(_usr.uid).digest():
+                self._hub.client.publish("<user/dev", f"{self._hub.token}/{self.serial}", qos=1)
+                break
 
     def pub_dev(self, topic, value):
         if len(self.__user_list) > 0:

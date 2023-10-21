@@ -42,16 +42,20 @@ class HUB(log):
         self.token = token
         self.devices = []
 
-        for dev in devices:
-            self.devices.append(dev)
-            dev.set_hub(self)
-
         self.root_hub_hnd = [
             ["time", self.__time_hnd, '/'],
             ["lifetime", self.__lifetime_hnd, '>'],
             ["error", self.__error_hnd, '>'],
             ["ping", self.__ping_hnd, '>']
         ]
+        
+        self.root_hnd = [
+            (">hub", self.__hub_topic_hnd),
+        ]
+
+        for dev in devices:
+            self.devices.append(dev)
+            dev.set_hub(self)
 
         self._on_chg_state = None
         self._on_disconnect_cb = None
@@ -174,29 +178,11 @@ class HUB(log):
         '''
         Обработчик топика >hub
         '''
-        if topic == ">hub":
-            value = value.decode("utf-8")
-            search_dev = int(value)
-            for dev in self.devices:
-                if dev.serial == search_dev:
-                    self.client.publish('<hub', self.token, qos=1)
-                    return True
-        return False
-
-    def __user_devs_hnd(self, topic: str, payload: bytes):
-        '''
-        Обработчик топика >user/dev
-        '''
-        if topic == ">user/dev":
-            value = payload.decode("utf-8")
-            search_usr = base64.b64decode(value)
-            for dev in self.devices:
-                for usr in dev.users:
-                    _usr_hh = hashlib.sha256(usr.uid).digest()
-                    if _usr_hh == search_usr:
-                        self.client.publish('>user/dev', f"/{self.token}/{dev.serial}", qos=1)
-            return True
-        return False
+        value = value.decode("utf-8")
+        search_dev = int(value)
+        for dev in self.devices:
+            if dev.serial == search_dev:
+                self.client.publish('<hub', self.token, qos=1)
 
     def __on_message(self, topic: str, payload: bytes):
         '''
@@ -207,11 +193,10 @@ class HUB(log):
         value = payload.decode("utf-8")
         self.info(f"Message: {{topic: {topic}, value: {value} }}")
 
-        if self.__hub_topic_hnd(topic, payload):
-            return
-
-        if self.__user_devs_hnd(topic, payload):
-            return
+        for root_topic in self.root_hnd:
+            if topic == root_topic[0]:
+                root_topic[1](topic, value)
+                return
 
         if topic.startswith(f'/{self.token}/') or topic.startswith(f'>{self.token}/'):
             topic = topic[len(f'/{self.token}/'):]
@@ -230,6 +215,11 @@ class HUB(log):
     def register_hub_cb(self, topic, cb):
         if callable(cb):
             self.root_hub_hnd.append((topic, cb, '>'))
+            
+    
+    def register_root_cb(self, topic, cb):
+        if callable(cb):
+            self.root_hnd.append((topic, cb))
 
     def step(self):
         '''
