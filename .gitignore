@@ -4,3 +4,4 @@ src/static/*
 out/**
 data/**
 fw.tmp/**
+fw.img

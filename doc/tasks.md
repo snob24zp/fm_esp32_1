@@ -1,0 +1,48 @@
+- [x] WEB-APP
+- [x] MQTT transport
+- [ ] UCLIENT
+	- [x] Registration
+	- [x] Publishing registers
+	- [x] Submitting registers
+	- [x] Non integer registers
+	- [x] Memory operations
+	- [ ] FW-updater 
+		- [x] fs-file
+		- [x] Uploading via html
+		- [ ] uploading via mqtt
+		- [ ] downloading from http
+		- [ ] docs
+	- [x] Users
+		- [x] signing messages
+		- [x] storing users
+		- [x] add users
+		- [x] list users
+		- [x] remove users
+		- [x] topic >user/dev
+		- [ ] check acls and follow permissions
+	- [x] events storing, history
+		- [x] time-series db
+		- [x] Storing events
+		- [x] Publishing events
+	- [ ] Error topics tests
+	- [ ] hub topic tests
+	- [ ] Server topic
+	- [ ] Documentation
+		- [ ] describe user-server-device application examples and graphs
+		- [ ] describe protocol briefly
+	- [ ] CI/CD
+- [ ] update USERVER according to last changes in UCLIENT
+	- [ ] Protocol V2
+		- [x] registration
+		- [x] Handle incoming register changes (events)
+		- [x] non-integer values for registers
+		- [ ] Batch transfers
+	- [ ] Tests
+	- [ ] CI/CD
+- [ ] Update SWARM according to last changes in UCLIENT
+	- [ ] Protocol V2
+		- [ ] Handle incoming register changes (events)
+		- [ ] non-integer values for registers
+		- [ ] Batch transfers
+	- [ ] CI/CD ?
+- [ ] UART bridge example app

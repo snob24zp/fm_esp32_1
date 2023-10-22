@@ -1,4 +1,5 @@
 import os
+import sys
 
 class fat_bdev:
     def __init__(self, filename, blocksize = 512):
@@ -71,10 +72,12 @@ def mv(fnamea, fnameb):
     rm(fnamea)
 
 def mount(fname, path):
-    os.mount(fat_bdev(fname), path)
+    if sys.version.count('MicroPython') > 0:
+        os.mount(fat_bdev(fname), path)
 
 def umount(path):
-    os.umount(path)
+    if sys.version.count('MicroPython') > 0:
+        os.umount(path)
 
 def cat(fname):
     with open(fname, 'rb') as fd:

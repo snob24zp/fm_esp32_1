@@ -3,8 +3,16 @@ import base64
 from log import log
 import disk
 import os
-import machine
 import struct
+import time
+
+import sys
+
+if sys.version.count('MicroPython') > 0:
+    from machine import reset, Timer
+else:
+    def reset():
+        exit(0)
 
 
 class ueba_pkg:
@@ -92,22 +100,29 @@ class fwupd(log):
         if int(cmd) == 1 and self.state == None:
             self.reset()
             self.state = 1
-            self.fd = open(fwupd.FW_FILE, 'w')
+            self.fd = open(fwupd.FW_FILE, 'wb')
             self.warn('Prepared to upgrade')
             return 'OK'
         elif int(cmd) == 2 and self.state == 1:
             self.fd.close()
             self.warn('Try to mount incoming FW-image')
-            disk.mount(fwupd.FW_FILE, '/upgrade')
+            if sys.version.count('MicroPython') > 0:
+                disk.mount(fwupd.FW_FILE, '/upgrade')
+            else:
+                time.sleep(1)
             self.warn('Mounting done')
             self.state = 2
             return 'OK'
         elif int(cmd) == 3 and self.state == 2:
-            self.warn('Copying files')
-            sz = disk.cp(fwupd.FW_MOUNTPOINT, '.', True)
-            self.warn(f'Copied: {sz} bytes')
-            os.unlink(fwupd.FW_FILE)
-            machine.reset()
+            def _mpy_cp():
+                self.warn('Copying files')
+                sz = disk.cp(fwupd.FW_MOUNTPOINT, '.', True)
+                self.warn(f'Copied: {sz} bytes')
+                os.unlink(fwupd.FW_FILE)
+                reset()
+
+            if sys.version.count('MicroPython') > 0:
+                Timer(-1,period=100, mode=Timer.ONE_SHOT, callback=_mpy_cp)
             return 'OK'
         else:
             self.reset()

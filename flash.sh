@@ -15,14 +15,17 @@ fi
 git submodule init
 git submodule sync
 
-SRCS=(hw net uclient .)
+SRCS=(hw "hw/${BOARD%.*}" net uclient .)
 HTMLS=(static)
 
 CMD="ampy -p $1"
+MPY_CROSS="./tools/mpy-cross"
 # CMD="echo $1"
 echo "Generate BSP"
 rm src/board.py
 jsonlint -Sf $BOARD | tools/json2py.py > src/board.py
+
+echo "ARCH = \"${BOARD%.*}\"" > src/hw/arch.py
 
 for _lib in ${SRCS[@]}; do
     if [ $_lib != '.' ]; then
@@ -37,7 +40,7 @@ for _lib in ${SRCS[@]}; do
 
         _rf="$_lib/$(basename $_f)"
         _mpy="./src/$_lib/$(basename $_f .py).mpy"
-        mpy-cross $_f
+        $MPY_CROSS $_f
         if [ -f $_mpy ] && [ $(basename $_f) != "main.py" ]; then
             _rmpy="$_lib/$(basename $_rf .py).mpy"
             echo "copying $_mpy -> $_rmpy"

@@ -1,0 +1,37 @@
+{
+	"nodes":[
+		{"id":"ca60ed15c4432960","x":-580,"y":-160,"width":186,"height":50,"type":"text","text":"DEVICE-222"},
+		{"id":"5da2974f169edd81","type":"text","text":"DEVICE-333","x":-580,"y":-100,"width":186,"height":50},
+		{"id":"1f1793a870ad2f67","x":-580,"y":-220,"width":186,"height":50,"type":"text","text":"DEVICE-111"},
+		{"id":"c0deadcecd243b80","x":-174,"y":-110,"width":250,"height":60,"color":"1","type":"text","text":"MQTT-BROKER"},
+		{"id":"d8ddadaa9c11f5e7","type":"text","text":"DEVICE-NNN","x":-580,"y":100,"width":186,"height":50},
+		{"id":"1be68f12bd510d1e","type":"text","text":"DEVICE-ZZZ","x":-580,"y":40,"width":186,"height":50},
+		{"id":"204f15d8d87fec10","x":-128,"y":-220,"width":204,"height":50,"type":"text","text":"User-Server"},
+		{"id":"1678eb2e403e6c8c","type":"text","text":"FW-Upgrade-server","x":-128,"y":-280,"width":204,"height":50},
+		{"id":"4d6dd63aa6fcb7fc","type":"text","text":"Event storing server","x":-128,"y":-340,"width":204,"height":50},
+		{"id":"5747007dbd2280cb","x":-174,"y":-15,"width":250,"height":60,"type":"text","text":"MQTT.JS WEB-Application (Swarm)"},
+		{"id":"b44a5b0b06c2aa6c","x":220,"y":-340,"width":200,"height":50,"type":"text","text":"User Ivanov"},
+		{"id":"d4852750bb2698e9","type":"text","text":"User Petrov","x":220,"y":-270,"width":200,"height":50},
+		{"id":"4e8d50ac51beaba4","type":"text","text":"User John Smith","x":220,"y":-195,"width":200,"height":50},
+		{"id":"f666145aca480033","type":"text","text":"User X","x":220,"y":-75,"width":200,"height":50},
+		{"id":"26f046ca21909f19","type":"text","text":"User Y","x":220,"y":-10,"width":200,"height":50},
+		{"id":"d50b0af8a4e07e88","type":"text","text":"User Z","x":220,"y":65,"width":200,"height":50}
+	],
+	"edges":[
+		{"id":"bd28a8d8818b28cf","fromNode":"1f1793a870ad2f67","fromSide":"right","toNode":"c0deadcecd243b80","toSide":"left"},
+		{"id":"631446ffff069dc2","fromNode":"ca60ed15c4432960","fromSide":"right","toNode":"c0deadcecd243b80","toSide":"left"},
+		{"id":"6e5c6cbe15df0751","fromNode":"5da2974f169edd81","fromSide":"right","toNode":"c0deadcecd243b80","toSide":"left"},
+		{"id":"c6f5ca1ce30c3604","fromNode":"1be68f12bd510d1e","fromSide":"right","toNode":"c0deadcecd243b80","toSide":"left"},
+		{"id":"80bad9cb680ddbf1","fromNode":"d8ddadaa9c11f5e7","fromSide":"right","toNode":"c0deadcecd243b80","toSide":"left"},
+		{"id":"bd51b2c0ebeec7a7","fromNode":"204f15d8d87fec10","fromSide":"left","toNode":"c0deadcecd243b80","toSide":"left"},
+		{"id":"e83c4fa640883b59","fromNode":"1678eb2e403e6c8c","fromSide":"left","toNode":"c0deadcecd243b80","toSide":"left"},
+		{"id":"a44efc8f58f520a4","fromNode":"4d6dd63aa6fcb7fc","fromSide":"left","toNode":"c0deadcecd243b80","toSide":"left"},
+		{"id":"ce960cc21350388f","fromNode":"b44a5b0b06c2aa6c","fromSide":"left","toNode":"5747007dbd2280cb","toSide":"right"},
+		{"id":"131735aecccd21bd","fromNode":"d4852750bb2698e9","fromSide":"left","toNode":"5747007dbd2280cb","toSide":"right"},
+		{"id":"65fd269b66e33da2","fromNode":"4e8d50ac51beaba4","fromSide":"left","toNode":"5747007dbd2280cb","toSide":"right"},
+		{"id":"cb2b6525606d8194","fromNode":"f666145aca480033","fromSide":"left","toNode":"5747007dbd2280cb","toSide":"right"},
+		{"id":"51f6206e6ad0529e","fromNode":"26f046ca21909f19","fromSide":"left","toNode":"5747007dbd2280cb","toSide":"right"},
+		{"id":"8bd908f2e1c35c09","fromNode":"d50b0af8a4e07e88","fromSide":"left","toNode":"5747007dbd2280cb","toSide":"right"},
+		{"id":"9bd938c30c08f604","fromNode":"5747007dbd2280cb","fromSide":"left","toNode":"c0deadcecd243b80","toSide":"left"}
+	]
+}

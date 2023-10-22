@@ -1,6 +1,10 @@
 {
     "network": {
-        "import": "hw.wlan",
+        "import": "hw.esp32.wlan",
         "type": "WLAN"
-    }
+    }, 
+    // "ble" : {
+    //      "import": "hw.esp32.ble",
+    //      "type": "BLEUART"
+    // }
 }

@@ -1,0 +1,10 @@
+{
+    "network": {
+        "import": "hw.linux.wlan",
+        "type": "WLAN"
+    }, 
+    "ble" : {
+         "import": "hw.linux.ble",
+         "type": "BLEUART"
+    }
+}

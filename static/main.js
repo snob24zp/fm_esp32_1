@@ -176,7 +176,7 @@ function file_select(input) {
     };
 }
 
-function post(uri, data, ondone, onerror) {
+function post(uri, data, ondone, onerror, timeout = 30000) {
     var xhr = new XMLHttpRequest();
     xhr.timeout = 30000;
     xhr.onreadystatechange = function () {
@@ -230,10 +230,16 @@ function push_fw() {
                 post("/fw_upd", 2, (_res) => {
                     console.log("response: ", res)
                     setTimeout(() => {
-                        post("/fw_upd", 3, () => {
-                            setTimeout(() => document.location.reload(), 1000)
-                        })
-                    }, 5000)
+                        post("/fw_upd", 3, (_res) => {
+                            console.log("Done", _res)
+                            document.location.reload();
+                        }, ()=>{
+                            console.log("Error happend")
+                            document.location.reload();
+                        }, 120000);
+
+                        setTimeout(() => document.location.reload(), 120000);
+                    }, 2000)
                 })
             }
         })

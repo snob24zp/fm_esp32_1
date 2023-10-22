@@ -92,10 +92,10 @@ def test():
     try:
         from machine import unique_id
     except ImportError:
-        import random
+        from config import config_t
 
         def unique_id():
-            return random.randbytes(6)
+            return config_t().mac
 
     dev = mem_device(12345)
     token = unique_id().hex(":")
