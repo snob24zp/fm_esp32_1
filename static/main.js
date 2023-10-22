@@ -181,7 +181,11 @@ function post(uri, data, ondone, onerror) {
     xhr.timeout = 30000;
     xhr.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200 && typeof ondone === "function") {
-            ondone(JSON.parse(this.responseText));
+            try {
+                ondone(JSON.parse(this.responseText));
+            } catch {
+                onerror()
+            }
         }
 
         if (this.readyState == 4 && this.status != 200 && typeof onerror === "function") {

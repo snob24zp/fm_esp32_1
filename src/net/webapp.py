@@ -4,9 +4,12 @@ from net.microdot import Microdot, send_file
 from config import config_t
 from log import log
 from version import STATIC_VERSION
+from fwupd import fwupd
+import json
 
 def init():
     _log = log('WEBAPP')
+    _fwupd = fwupd()
     webserv = Microdot()
 
     @webserv.route('/')
@@ -66,7 +69,19 @@ def init():
         _log.warn('Going to reboot in 1s')
         Timer(-1,period=1000, mode=Timer.ONE_SHOT, callback=lambda t:reset())
         return "\"OK\""
+    
+    @webserv.route('/fw_upd', methods=['POST'])
+    def fwupd_hnd(req):
+        _log.info(f'POST /fw_upd ({req.json})')
+        return json.dumps(_fwupd.fwupd(req.body.decode()))
 
+    @webserv.route('/fw_pkg', methods=['POST'])
+    def fwupd_hnd(req):
+        _log.info(f'POST /fw_pkg')
+        ret = _fwupd.fwpkg(req.body.decode())
+        if "error" in ret:
+            return json.dumps(ret), 500
+        return json.dumps(ret)
 
     @webserv.route('/<file>', methods=['GET'])
     def file_hnd(req, file):

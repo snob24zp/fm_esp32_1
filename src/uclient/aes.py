@@ -5,7 +5,7 @@ if sys.version.count('MicroPython') > 0:
 else:
     from Crypto.Cipher import AES
 
-def __cipher__(key, iv):
+def cipher(key, iv):
     if sys.version.count('MicroPython') > 0:
         return aes(key, 2, iv)
     else:
@@ -13,10 +13,10 @@ def __cipher__(key, iv):
 
 
 def decrypt(data: bytes, key: bytes, iv=bytes(16)) -> bytes:
-    data = __cipher__(key, iv).decrypt(data)
+    data = cipher(key, iv).decrypt(data)
     return data[:-data[-1]]
 
 def encrypt(data: bytes, key: bytes, iv=bytes(16)) -> bytes:
     pad = AES.block_size - len(data) % AES.block_size
     data +=  bytes(pad * [pad])
-    return __cipher__(key, iv).encrypt(data)
+    return cipher(key, iv).encrypt(data)

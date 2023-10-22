@@ -2,6 +2,7 @@ import board
 import time
 from config import config_t
 import ntptime
+import net.webapp as webapp
 
 
 def main():
@@ -16,7 +17,8 @@ def main():
     
     if cfg.wlan_mode == 0:
         ntptime.settime()
-    # webapp.init().run(port=80)
+
+    webapp.init().run(port=80)
 
 
 if __name__ == '__main__':

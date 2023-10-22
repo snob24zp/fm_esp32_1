@@ -3,3 +3,4 @@ src/static/*
 **/__pycache__/**
 out/**
 data/**
+fw.tmp/**

@@ -1,14 +1,7 @@
 #!/bin/bash
 
-# ampy -p $1 mkdir hw
-
+BOARD=$1
 if [ -z $1 ]; then
-    echo "Usage $0 [port][board-file]"
-    exit 1
-fi
-
-BOARD=$2
-if [ -z $2 ]; then
     BOARD=esp32.json
 fi
 
@@ -17,18 +10,20 @@ git submodule sync
 
 SRCS=(hw net uclient .)
 HTMLS=(static)
+OUT_DIR=fw.tmp
+FS_FILE=out/fw.fs
 
-CMD="ampy -p $1"
-# CMD="echo $1"
+mkdir -p $OUT_DIR
+rm -rf $OUT_DIR/*
+
 echo "Generate BSP"
 rm src/board.py
 jsonlint -Sf $BOARD | tools/json2py.py > src/board.py
 
 for _lib in ${SRCS[@]}; do
     if [ $_lib != '.' ]; then
-        $CMD rmdir $_lib &> /dev/null
         echo "Create dir $_lib"
-        $CMD mkdir $_lib
+        mkdir -p "$OUT_DIR/$_lib"
     fi
     for _f in ./src/$_lib/*.py; do
         if [ $(basename $_f) == "setup.py" ]; then
@@ -41,11 +36,11 @@ for _lib in ${SRCS[@]}; do
         if [ -f $_mpy ] && [ $(basename $_f) != "main.py" ]; then
             _rmpy="$_lib/$(basename $_rf .py).mpy"
             echo "copying $_mpy -> $_rmpy"
-            $CMD put $_mpy $_rmpy
+            cp $_mpy "$OUT_DIR/$_rmpy"
             rm $_mpy
         else
             echo "copying $_f -> $_rf"
-            $CMD put $_f $_rf
+            cp $_f "$OUT_DIR/$_rf"
             if [ -f $_mpy ]; then
                 rm $_mpy
             fi
@@ -55,9 +50,8 @@ done
 
 for _lib in ${HTMLS[@]}; do
     if [ $_lib != '.' ]; then
-        $CMD rmdir $_lib &> /dev/null
         echo "Create dir $_lib"
-        $CMD mkdir $_lib
+        mkdir -p "$OUT_DIR/$_lib"
     fi
 
     for _f in ./$_lib/*.html; do
@@ -65,7 +59,7 @@ for _lib in ${HTMLS[@]}; do
         _minified="./src/$_lib/$(basename $_f)"
         minify $_f > $_minified
         echo "copying HTML $_minified -> $_rf"
-        $CMD put $_minified $_rf
+        cp $_minified "$OUT_DIR/$_rf"
     done
     
     for _f in ./$_lib/*.js; do
@@ -73,7 +67,7 @@ for _lib in ${HTMLS[@]}; do
         _minified="./src/$_lib/$(basename $_f)"
         minify $_f > $_minified
         echo "copying JS $_minified -> $_rf"
-        $CMD put $_minified $_rf
+        cp $_minified "$OUT_DIR/$_rf"
     done
     
     for _f in ./$_lib/*.css; do
@@ -81,11 +75,23 @@ for _lib in ${HTMLS[@]}; do
         _minified="./src/$_lib/$(basename $_f)"
         minify $_f > $_minified
         echo "copying CSS $_minified -> $_rf"
-        $CMD put $_minified $_rf
+        cp $_minified "$OUT_DIR/$_rf"
     done
 done
 
-$CMD put static/favicon.ico static/favicon.ico
+cp static/favicon.ico "$OUT_DIR/static/favicon.ico"
 
-echo "Reset board"
-# $CMD reset
+sz=$(du -sb $OUT_DIR | cut -f 1)
+
+echo "Creating littleFS filesystem image"
+
+rm -f $FS_FILE
+./tools/mklittlefs -d 5 -c $OUT_DIR -b 512 -s $(($sz + 4096)) $FS_FILE
+rm -rf $OUT_DIR
+
+echo "Size: $(du -sb $FS_FILE)"
+
+echo "Creating UEBA bootloader firmware"
+tools/ueba/ueba-fw-builder -ib $FS_FILE -t dev_ar -o out/AR.FW
+echo "Use this file to update device: "
+ls -la out/*.uebf

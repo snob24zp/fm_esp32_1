@@ -30,18 +30,37 @@ class fat_bdev:
                 fd.write(bytes(512))
             return 0
         
-def cp(fnamea, fnameb):
-    with open(fnamea, 'r') as fda:
-        with open(fnameb, 'w') as fdb:
-            total = 0
-            ret = 512
-            while ret:
-                buf = bytearray(512)
-                ret = fda.readinto(buf)
-                total += ret
-                fdb.write(buf[:ret])
-            return total
-        
+def cp(fnamea, fnameb, recursive = False):
+    if os.stat(fnamea)[0] == 32768:
+        with open(fnamea, 'r') as fda:
+            with open(fnameb, 'w') as fdb:
+                total = 0
+                ret = 512
+                print(fnamea, '-- (file) -->', fnameb)
+                while ret:
+                    buf = bytearray(512)
+                    ret = fda.readinto(buf)
+                    total += ret
+                    fdb.write(buf[:ret])
+                return total
+    elif recursive:
+        try:
+            if os.stat(fnameb)[0] == 32768:
+                os.unlink(fnameb)
+            elif os.stat(fnameb)[0] == 16384:
+                os.rmdir(fnameb)
+                os.mkdir(fnameb)
+            else:
+                print('unknown mode:', os.stat(fnameb))
+        except Exception as ex:
+            print('Exception on copy:', ex)
+
+        print(fnamea, '-- (dir) -->', fnameb)
+        total = 0
+        for _f in os.listdir(fnamea):
+            total += cp(f'{fnamea}/{_f}', f'{fnameb}/{_f}', recursive)
+        return total
+
 def rm(fname):
     os.unlink(fname)
     
