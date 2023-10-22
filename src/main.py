@@ -16,7 +16,10 @@ def main():
         time.sleep(1)
     
     if cfg.wlan_mode == 0:
-        ntptime.settime()
+        try:
+            ntptime.settime()
+        except:
+            print('Could not get update from NTP server')
 
     webapp.init().run(port=80)
 

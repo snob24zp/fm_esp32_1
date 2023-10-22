@@ -47,7 +47,9 @@ def cp(fnamea, fnameb, recursive = False):
         try:
             if os.stat(fnameb)[0] == 32768:
                 os.unlink(fnameb)
-            elif os.stat(fnameb)[0] == 16384:
+            elif os.stat(fnameb)[0] == 16384 and len(fnameb) > 1:
+                for _f in os.listdir(fnameb):
+                    os.unlink(f'{fnameb}/{_f}')
                 os.rmdir(fnameb)
                 os.mkdir(fnameb)
             else:

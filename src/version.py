@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-STATIC_VERSION = "R230620;master;4588a7b7fbc59165f44ff9980aaf9df8077c9629"
+STATIC_VERSION = "R231022;master;562ca1d7af54e81ea61b51ece2f49d33730d38b3"
 
 def get_version():    
     import datetime
@@ -9,7 +9,7 @@ def get_version():
     global STATIC_VERSION
 
     try:
-        repo = git.Repo('.')
+        repo = git.Repo('.', search_parent_directories=True)
         now = repo.head.commit.authored_datetime
         STATIC_VERSION = f"R{(now.year-2000):02d}{now.month:02d}{now.day:02d};{repo.active_branch};{repo.head.commit.hexsha}"
         content = []
@@ -24,7 +24,7 @@ def get_version():
         with open(__file__, 'wt') as fd:
             fd.writelines(content)
 
-    except git.InvalidGitRepositoryError:
+    except git.InvalidGitRepositoryError as ex:
         pass
     return STATIC_VERSION
 

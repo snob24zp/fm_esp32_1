@@ -20,6 +20,8 @@ echo "Generate BSP"
 rm src/board.py
 jsonlint -Sf $BOARD | tools/json2py.py > src/board.py
 
+python3 src/version.py
+
 for _lib in ${SRCS[@]}; do
     if [ $_lib != '.' ]; then
         echo "Create dir $_lib"
@@ -86,7 +88,7 @@ sz=$(du -sb $OUT_DIR | cut -f 1)
 echo "Creating littleFS filesystem image"
 
 rm -f $FS_FILE
-./tools/mklittlefs -d 5 -c $OUT_DIR -b 512 -s $(($sz + 4096)) $FS_FILE
+./tools/mklittlefs -d 5 -c $OUT_DIR -b 512 -s $(($sz + 8196)) $FS_FILE
 rm -rf $OUT_DIR
 
 echo "Size: $(du -sb $FS_FILE)"

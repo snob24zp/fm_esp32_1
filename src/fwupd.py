@@ -106,6 +106,7 @@ class fwupd(log):
             self.warn('Copying files')
             sz = disk.cp(fwupd.FW_MOUNTPOINT, '.', True)
             self.warn(f'Copied: {sz} bytes')
+            os.unlink(fwupd.FW_FILE)
             machine.reset()
             return 'OK'
         else:
