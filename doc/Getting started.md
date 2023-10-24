@@ -34,7 +34,7 @@ If you see it, then device ready to work
 ## 3. Initial configuration
 
 Now device ready to work. To configure network, you need connect to device Wi-Fi access point (will looks like `AR-[12 digits and letters]`) and go to the http://192.168.4.1.
-After a while, when device stops scanning Wi-Fi networks select yours, write the password of this network and press button `Connect`. Now you should have device connected to the yours wifi. 
+After a while, when device stops scanning Wi-Fi networks select yours, write the password of this network and press button `Connect`. Now you should have device connected to the yours Wi-Fi. 
 
 ## 4. Simulator start
 
@@ -43,3 +43,4 @@ To check protocol and other stuff, firmware could be started as python applicati
 $python3 src/main.py
 ```
 
+Device web page will be available at port 3000 (http://localhost:3000)

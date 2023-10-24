@@ -28,9 +28,9 @@ class fat_bdev:
             addr = arg * self.block_size
             with open(self.filename, 'r+b') as fd:
                 fd.seek(addr)
-                fd.write(bytes(512))
+                fd.write(bytes(self.block_size))
             return 0
-        
+
 def cp(fnamea, fnameb, recursive = False):
     if os.stat(fnamea)[0] == 32768:
         with open(fnamea, 'r') as fda:
@@ -62,6 +62,7 @@ def cp(fnamea, fnameb, recursive = False):
         total = 0
         for _f in os.listdir(fnamea):
             total += cp(f'{fnamea}/{_f}', f'{fnameb}/{_f}', recursive)
+            os.sync()
         return total
 
 def rm(fname):

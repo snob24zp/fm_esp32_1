@@ -238,7 +238,7 @@ function push_fw() {
                             document.location.reload();
                         }, 120000);
 
-                        setTimeout(() => document.location.reload(), 120000);
+                        setTimeout(() => document.location.reload(), 180000);
                     }, 2000)
                 })
             }

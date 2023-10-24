@@ -2,10 +2,12 @@ import network
 from config import config_t
 import utime
 from machine import reset
+from log import log
 
 
-class WLAN:
+class WLAN(log):
     def __init__(self) -> None:
+        super().__init__('WLAN')
         self._cfg = config_t()
         self._pre_time = 0
         self._scan = None
@@ -18,21 +20,24 @@ class WLAN:
         self._wlan = network.WLAN(self._cfg.wlan_mode)
         self._wlan.active(True)
         if self._cfg.wlan_mode == network.AP_IF:
-            self._wlan.config(ssid=self._cfg.ap_ssid,password=self._cfg.ap_pwd)
-            print(f'Set up AP: [SSID: {self._cfg.ap_ssid} Password: {self._cfg.ap_pwd}]')
+            self._wlan.config(ssid=self._cfg.ap_ssid,password=self._cfg.ap_pwd, pm=network.WLAN.PM_NONE)
+            self.info(f'Set up AP: [SSID: {self._cfg.ap_ssid} Password: {self._cfg.ap_pwd}]')
         elif self._cfg.wlan_mode == network.STA_IF:
             utime.sleep_ms(1000)
-            print(f'Connecting: [SSID: {self._cfg.sta_ssid} Password: {self._cfg.sta_pwd}]')
-            self._wlan.connect(self._cfg.sta_ssid,self._cfg.sta_pwd)
-            print(f'ifconfig: {self._cfg.ifconfig}')
-            if self._cfg.ifconfig[0] == 'dhcp':
-                self._wlan.ifconfig('dhcp')
-            elif len(self._cfg.ifconfig) == 4:
-                self._wlan.ifconfig(self._cfg.ifconfig)
-            else:
-                self._cfg.ifconfig[0] = 'dhcp'
-                self._cfg.save()
-                reset()
+            self.info(f'Connecting: [SSID: {self._cfg.sta_ssid} Password: {self._cfg.sta_pwd}]')
+            try:
+                self._wlan.connect(self._cfg.sta_ssid,self._cfg.sta_pwd)
+                self.info(f'ifconfig: {self._cfg.ifconfig}')
+                if self._cfg.ifconfig[0] == 'dhcp':
+                    self._wlan.ifconfig('dhcp')
+                elif len(self._cfg.ifconfig) == 4:
+                    self._wlan.ifconfig(self._cfg.ifconfig)
+                else:
+                    self._cfg.ifconfig[0] = 'dhcp'
+                    self._cfg.save()
+                    reset()
+            except RuntimeError as ex:
+                self.err(f'Runtime error: {ex}')
         else:
             self._cfg.wlan_mode = network.AP_IF
             self._cfg.save()

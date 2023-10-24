@@ -9,10 +9,7 @@ import time
 import sys
 
 if sys.version.count('MicroPython') > 0:
-    from machine import reset, Timer
-else:
-    def reset():
-        exit(0)
+    import machine
 
 
 class ueba_pkg:
@@ -33,7 +30,7 @@ class ueba_pkg:
                 else:
                     crc = crc >> 1
                     crc = crc ^ ueba_pkg.POLYNOMIAL
-        crc =  crc ^ 0xFFFF
+        crc = crc ^ 0xFFFF
         return ((crc & 0xff) << 8) | (crc >> 8)
 
     def __init__(self, sig, offset, size, data) -> None:
@@ -56,14 +53,13 @@ class ueba_pkg:
 
         cipher = aes.cipher(ueba_pkg.FW_KEY, bytes(16))
         pkg = cipher.decrypt(pkg[1])
-        
-        
+
         data = struct.unpack(">HHIH6s512s", pkg)
         if ueba_pkg.DEV_TYPE != data[1]:
             log.warn('Signature missmatch')
             return None
-        
-        if  ueba_pkg.crc16(pkg[2:]) != data[0]:
+
+        if ueba_pkg.crc16(pkg[2:]) != data[0]:
             log.warn('CRC2 missmatch')
             return None
 
@@ -77,65 +73,78 @@ class fwupd(log):
 
     def __init__(self) -> None:
         super().__init__('FW-UPD')
-        self.fd = None
+        self._is_not_simu = sys.version.count('MicroPython') > 0
         self.reset()
 
     def reset(self):
         self.state = None
         self.idx = 0
-        if self.fd is not None:
-            self.fd.close()
-        self.fd = None
         self.info('Initialized')
 
     @staticmethod
     def isnumeric(inp):
         return all([x >= '0' and x <= '9' for x in inp])
 
-    def fwupd(self, cmd):
+    @staticmethod
+    def _mpy_cp():
+        if sys.version.count('MicroPython') > 0 and fwupd.FW_FILE in os.listdir('.'):
+            try:
+                print(f"FW file size: {os.stat(fwupd.FW_FILE)[6]} bytes")
+                print("Mount FS image")
+                disk.mount(fwupd.FW_FILE, fwupd.FW_MOUNTPOINT)
+                print('Copying. Disk free: ', disk.free('/'))
+                sz = disk.cp(fwupd.FW_MOUNTPOINT, '.', True)
+                print(f'Copy done: {sz} bytes')
+                os.sync()
+                print('Unmounting disk. Disk free:', disk.free('/'))
+                disk.umount(fwupd.FW_MOUNTPOINT)
+                os.sync()
+            finally:
+                print('Unlink FW disk image')
+                os.unlink(fwupd.FW_FILE)
+                os.sync()
+                print('Reseting in 10s')
+                time.sleep(10)
+                machine.reset()
 
+    def fwupd(self, cmd):
         if not fwupd.isnumeric(cmd):
             return 'Command should be numeric'
 
         if int(cmd) == 1 and self.state == None:
             self.reset()
             self.state = 1
-            self.fd = open(fwupd.FW_FILE, 'wb')
             self.warn('Prepared to upgrade')
             return 'OK'
         elif int(cmd) == 2 and self.state == 1:
-            self.fd.close()
             self.warn('Try to mount incoming FW-image')
-            if sys.version.count('MicroPython') > 0:
-                disk.mount(fwupd.FW_FILE, '/upgrade')
+            if self._is_not_simu:
+                disk.mount(fwupd.FW_FILE, fwupd.FW_MOUNTPOINT)
             else:
                 time.sleep(1)
-            self.warn('Mounting done')
+            self.warn('Mounting done. Image valid')
             self.state = 2
             return 'OK'
         elif int(cmd) == 3 and self.state == 2:
-            def _mpy_cp():
-                self.warn('Copying files')
-                sz = disk.cp(fwupd.FW_MOUNTPOINT, '.', True)
-                self.warn(f'Copied: {sz} bytes')
-                os.unlink(fwupd.FW_FILE)
-                reset()
-
-            if sys.version.count('MicroPython') > 0:
-                Timer(-1,period=100, mode=Timer.ONE_SHOT, callback=_mpy_cp)
+            if self._is_not_simu:
+                machine.Timer(-1, period=1000, mode=machine.Timer.ONE_SHOT, callback=lambda t:         fwupd._mpy_cp())
             return 'OK'
         else:
             self.reset()
             return 'Wrong state or command for state'
 
     def fwpkg(self, pkg):
-        if self.state == 1 and self.fd:
+        if self.state == 1:
             chunk = base64.b64decode(pkg)
             self.warn(f'Recieved {len(chunk)} data')
             ret = ueba_pkg.parse(self, chunk)
             if ret is not None:
-                self.fd.seek(ret.offset)
-                self.fd.write(ret.data)
+                s = time.time_ns()
+                with open(fwupd.FW_FILE, 'wb' if self.idx == 0 else 'r+b') as fd:
+                    fd.seek(ret.offset)
+                    fd.write(ret.data)
+
+                self.warn(f'Writing {self.idx} done ({(time.time_ns() - s) // 10e6} ms)')
                 self.idx += 1
-                return {"chunk": self.idx }
-        return {"error": "Wrong state", "chunk": 0 }
+                return {"chunk": self.idx}
+        return {"error": "Wrong state", "chunk": 0}
