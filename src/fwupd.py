@@ -127,7 +127,7 @@ class fwupd(log):
             return 'OK'
         elif int(cmd) == 3 and self.state == 2:
             if self._is_not_simu:
-                machine.Timer(-1, period=1000, mode=machine.Timer.ONE_SHOT, callback=lambda t:         fwupd._mpy_cp())
+                machine.Timer(-1, period=1000, mode=machine.Timer.ONE_SHOT, callback=lambda t: fwupd._mpy_cp())
             return 'OK'
         else:
             self.reset()
