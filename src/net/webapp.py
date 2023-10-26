@@ -21,8 +21,8 @@ else:
     def reset():
         exit(0)
 
-
 def init():
+    global webserv
     _log = log('WEBAPP')
     _fwupd = fwupd()
     webserv = Microdot()
@@ -87,6 +87,8 @@ def init():
     @webserv.route('/fw_upd', methods=['POST'])
     def fwupd_hnd(req):
         _log.info(f'POST /fw_upd ({req.json})')
+        if req.body.decode() == 3:
+            webserv.shutdown()
         return json.dumps(_fwupd.fwupd(req.body.decode()))
 
     @webserv.route('/fw_pkg', methods=['POST'])

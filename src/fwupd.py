@@ -1,12 +1,14 @@
-import uclient.aes as aes
 import base64
-from log import log
 import disk
 import os
 import struct
 import time
-
 import sys
+
+
+import uclient.aes as aes
+from log import log
+
 
 if sys.version.count('MicroPython') > 0:
     import machine
@@ -42,17 +44,17 @@ class ueba_pkg:
     @staticmethod
     def parse(log, data: bytes):
         data = data.replace(b'\xba\x00', b'\xba')
-        pkg = struct.unpack(">H528sH", data)
-        if pkg[0] != 0xbabf:
+        data = struct.unpack(">H528sH", data)
+        if data[0] != 0xbabf:
             log.warn('Package have wrong header')
             return None
 
-        if ueba_pkg.crc16(pkg[1]) != pkg[2]:
+        if ueba_pkg.crc16(data[1]) != data[2]:
             log.warn('CRC1 missmatch')
             return None
 
         cipher = aes.cipher(ueba_pkg.FW_KEY, bytes(16))
-        pkg = cipher.decrypt(pkg[1])
+        pkg = cipher.decrypt(data[1])
 
         data = struct.unpack(">HHIH6s512s", pkg)
         if ueba_pkg.DEV_TYPE != data[1]:
@@ -70,15 +72,16 @@ class ueba_pkg:
 class fwupd(log):
     FW_FILE = "fw.img"
     FW_MOUNTPOINT = "/upgrade"
+    PG_SZ = 512
 
     def __init__(self) -> None:
         super().__init__('FW-UPD')
         self._is_not_simu = sys.version.count('MicroPython') > 0
         self.reset()
+        fwupd._mpy_cp()
 
     def reset(self):
         self.state = None
-        self.idx = 0
         self.info('Initialized')
 
     @staticmethod
@@ -95,14 +98,11 @@ class fwupd(log):
                 print('Copying. Disk free: ', disk.free('/'))
                 sz = disk.cp(fwupd.FW_MOUNTPOINT, '.', True)
                 print(f'Copy done: {sz} bytes')
-                os.sync()
                 print('Unmounting disk. Disk free:', disk.free('/'))
                 disk.umount(fwupd.FW_MOUNTPOINT)
-                os.sync()
             finally:
                 print('Unlink FW disk image')
                 os.unlink(fwupd.FW_FILE)
-                os.sync()
                 print('Reseting in 10s')
                 time.sleep(10)
                 machine.reset()
@@ -127,7 +127,7 @@ class fwupd(log):
             return 'OK'
         elif int(cmd) == 3 and self.state == 2:
             if self._is_not_simu:
-                machine.Timer(-1, period=1000, mode=machine.Timer.ONE_SHOT, callback=lambda t: fwupd._mpy_cp())
+                machine.Timer(-1, period=1000, mode=machine.Timer.ONE_SHOT, callback=lambda t: machine.reset())
             return 'OK'
         else:
             self.reset()
@@ -135,16 +135,20 @@ class fwupd(log):
 
     def fwpkg(self, pkg):
         if self.state == 1:
-            chunk = base64.b64decode(pkg)
-            self.warn(f'Recieved {len(chunk)} data')
-            ret = ueba_pkg.parse(self, chunk)
-            if ret is not None:
+            pkg = base64.b64decode(pkg)
+            self.warn(f'Recieved {len(pkg)} data')
+            pkg = ueba_pkg.parse(self, pkg)
+            if pkg is not None:
+                idx = pkg.offset // fwupd.PG_SZ
                 s = time.time_ns()
-                with open(fwupd.FW_FILE, 'wb' if self.idx == 0 else 'r+b') as fd:
-                    fd.seek(ret.offset)
-                    fd.write(ret.data)
+                with open(fwupd.FW_FILE, 'wb' if idx == 0 else 'r+b') as fd:
+                    fd.seek(pkg.offset)
+                    fd.write(pkg.data)
 
-                self.warn(f'Writing {self.idx} done ({(time.time_ns() - s) // 10e6} ms)')
-                self.idx += 1
-                return {"chunk": self.idx}
+                gc.collect()
+
+                self.warn(f'Writing {idx} done@{pkg.offset} ({(time.time_ns() - s) // 10e6} ms)')
+
+                return {"chunk": idx + 1}
         return {"error": "Wrong state", "chunk": 0}
+

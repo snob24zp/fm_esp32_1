@@ -62,7 +62,6 @@ def cp(fnamea, fnameb, recursive = False):
         total = 0
         for _f in os.listdir(fnamea):
             total += cp(f'{fnamea}/{_f}', f'{fnameb}/{_f}', recursive)
-            os.sync()
         return total
 
 def rm(fname):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import serial
+import re
 
 
 if __name__ == '__main__':
@@ -10,7 +11,6 @@ if __name__ == '__main__':
 
     CMD = '''import os\r\n\r\n
 
-if "{0}" in os.listdir("."):\r\n
 with open("{0}","rb") as _fd:\r\n
 r = _fd.read(1024)\r\n
 while r:\r\n
@@ -33,11 +33,12 @@ r = _fd.read(1024)\r\n
                 break
     
     #print(ret[262:-18].strip('\r\n'))
-
+    ret = ret[205:-18]
+    ret = re.sub(r"[\n\t\s]*", "", ret)
     if len(sys.argv) > 3:
         with open(sys.argv[3], 'wb') as _fd:
-            _fd.write(bytes.fromhex(ret[262:-18]))
+            _fd.write(bytes.fromhex(ret))
     else:
-        sys.stdout.buffer.write(bytes.fromhex(ret[262:-18]))
+        sys.stdout.buffer.write(bytes.fromhex(ret))
 
 

@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-
 import os
 import unittest
+import hashlib
 import xmlrunner
 import unittest
 import xml.etree.ElementTree as xml_parser
@@ -48,7 +48,6 @@ class fwupd_decrypt_test(unittest.TestCase):
         self.assertTrue(len(decrypted) == len(self.chunks))
 
         for idx in range(len(decrypted)):
-            print(f'Compare chunk {idx}')
             dec = decrypted[idx]
             ref = self.ref[idx * 512:][:512]
             self.assertTrue(len(dec) == len(ref))

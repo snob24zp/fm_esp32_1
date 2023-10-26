@@ -232,13 +232,13 @@ function push_fw() {
                     setTimeout(() => {
                         post("/fw_upd", 3, (_res) => {
                             console.log("Done", _res)
-                            document.location.reload();
+                            setTimeout(() => document.location.reload(), 180000);
                         }, ()=>{
                             console.log("Error happend")
                             document.location.reload();
                         }, 120000);
 
-                        setTimeout(() => document.location.reload(), 180000);
+                        setTimeout(() => document.location.reload(), 240000);
                     }, 2000)
                 })
             }
