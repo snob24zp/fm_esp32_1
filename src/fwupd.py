@@ -145,8 +145,6 @@ class fwupd(log):
                     fd.seek(pkg.offset)
                     fd.write(pkg.data)
 
-                gc.collect()
-
                 self.warn(f'Writing {idx} done@{pkg.offset} ({(time.time_ns() - s) // 10e6} ms)')
 
                 return {"chunk": idx + 1}

@@ -235,7 +235,7 @@ function push_fw() {
                             setTimeout(() => document.location.reload(), 180000);
                         }, ()=>{
                             console.log("Error happend")
-                            document.location.reload();
+                            setTimeout(() => document.location.reload(), 180000);
                         }, 120000);
 
                         setTimeout(() => document.location.reload(), 240000);
