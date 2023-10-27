@@ -1,7 +1,7 @@
 import os
 import base64
 import struct
-import hmac
+
 import json
 import hashlib
 try:
@@ -14,6 +14,7 @@ except ImportError:
 
 from uclient.device import device_base
 import uclient.aes as aes
+import uclient.hmac as hmac
 
 class user:
     MEM_DIR = 'data'

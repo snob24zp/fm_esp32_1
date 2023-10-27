@@ -56,7 +56,16 @@ def main():
                     ntptime.settime()
                 except:
                     print('Could not get update from NTP server')
-            
+                    
+                device = uart_device(cfg.serial)
+                hub = HUB(cfg.server, cfg.token, [device])
+                hub.connect()
+                def dev_step_thread():
+                    nonlocal hub
+                    while hub.is_connected:
+                        hub.step()
+                start_thread(lambda: dev_step_thread(),())
+
             start_thread(lambda: webapp.init().run(port=80),())
 
         if hasattr(board, "ble"):
@@ -65,6 +74,7 @@ def main():
             
             ble = board.ble
             ble.irq(on_ble_rx)
+
     else:
         banner = '''Set register from shell: device.set_reg(num, value)
 '''

@@ -352,6 +352,9 @@ class HUB(log):
         """
         Подключается к брокеру
         """
+        if self.server.startswith("mqtt://"):
+            self.server = self.server[7:]
+
         h = self.server.split(':')
         if len(h) == 1:
             self.client.connect(h[0])

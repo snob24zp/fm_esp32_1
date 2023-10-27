@@ -67,6 +67,9 @@ class HMAC:
 def new(key, msg = None, digestmod = None):
     return HMAC(key, msg, digestmod)
 
+def digest(key, msg = None, digestmod = None) -> bytes:
+    return new(key, msg, digestmod).digest()
+
 
 def test():
     resp = new(key=b'1234567890abcdef', msg=b'hello-message', digestmod=hashlib.sha256).digest()
