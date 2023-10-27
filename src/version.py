@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-STATIC_VERSION = "R231027;master;655b125b39047687d9ad0e2b83a3683089130329"
+STATIC_VERSION = "R231027;master;5cd3324ed5d079e47d4dcee33c9fcee6cc129e38"
 
 def get_version():    
     import datetime
