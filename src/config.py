@@ -21,8 +21,9 @@ class config_t(json_object):
         self.sta_ssid = f'AR-{self.mac}'
         self.sta_pwd = f'12345678'
         self.ifconfig = ('dhcp',)
-        self.server = "mqtt://x.ks.ua"
+        self.server = "x.ks.ua"
         self.token = bytes.fromhex(self.mac).hex(':')
+        self.serial = int.from_bytes(bytes.fromhex(self.mac)[2:],'little')
 
         if cfg_file in os.listdir('.'):
             with open(cfg_file, "rt") as c:
