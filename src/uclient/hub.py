@@ -204,10 +204,13 @@ class HUB(log):
                 if topic == root_hub_topic[0]:
                     root_hub_topic[1](value)
                     return
-
-            for dev in self.devices:
-                if topic.startswith(f'{dev.serial}/'):
-                    dev.hnd_msg(topic[len(f'{dev.serial}/'):], json.loads(value))
+            try:
+                value = json.loads(value)
+                for dev in self.devices:
+                    if topic.startswith(f'{dev.serial}/'):
+                        dev.hnd_msg(topic[len(f'{dev.serial}/'):], value)
+            except json.JSONDecodeError:
+                self.err("Wrong message format. All messages should be JSON-formed")
 
         # except Exception as e:
         #     self.err(f"on_msg exception: {e}")
