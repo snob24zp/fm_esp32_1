@@ -28,7 +28,7 @@ class fwupd_decrypt_test(unittest.TestCase):
     def decrypt_tst(self):
         fw = fwupd.fwupd()
         fw.fwupd("1")
-        ch_len = 512
+        ch_len = fwupd.fwupd.PG_SZ
         for idx, _chunk in enumerate(self.chunks):
             print(f'feed: {idx}')
             fw.fwpkg(_chunk)
@@ -49,9 +49,11 @@ class fwupd_decrypt_test(unittest.TestCase):
 
         for idx in range(len(decrypted)):
             dec = decrypted[idx]
-            ref = self.ref[idx * 512:][:512]
+            ref = self.ref[idx * ch_len:][:ch_len]
             self.assertTrue(len(dec) == len(ref))
             self.assertTrue(dec == ref)
+        
+        os.unlink('fw.img')
 
     def test(self):
         self.decrypt_tst()

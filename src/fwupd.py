@@ -86,7 +86,12 @@ class fwupd(log):
 
     @staticmethod
     def isnumeric(inp):
-        return all([x >= '0' and x <= '9' for x in inp])
+        if isinstance(inp, str):
+            return all([x >= '0' and x <= '9' for x in inp])
+        elif isinstance(inp, (int, float)):
+            return True
+        else:
+            return False
 
     @staticmethod
     def _mpy_cp():
@@ -110,21 +115,28 @@ class fwupd(log):
     def fwupd(self, cmd):
         if not fwupd.isnumeric(cmd):
             return 'Command should be numeric'
-
-        if int(cmd) == 1 and self.state == None:
+        
+        if int(cmd) == 0:
+            self.reset()
+            return 'OK'
+        elif int(cmd) == 1 and self.state == None:
             self.reset()
             self.state = 1
             self.warn('Prepared to upgrade')
             return 'OK'
         elif int(cmd) == 2 and self.state == 1:
             self.warn('Try to mount incoming FW-image')
-            if self._is_not_simu:
-                disk.mount(fwupd.FW_FILE, fwupd.FW_MOUNTPOINT)
-            else:
-                time.sleep(1)
-            self.warn('Mounting done. Image valid')
-            self.state = 2
-            return 'OK'
+            try:
+                if self._is_not_simu:
+                    disk.mount(fwupd.FW_FILE, fwupd.FW_MOUNTPOINT)
+                else:
+                    time.sleep(1)
+                self.warn('Mounting done. Image valid')
+                self.state = 2
+                return 'OK'
+            except:
+                self.state = 0
+                return "Error"
         elif int(cmd) == 3 and self.state == 2:
             if self._is_not_simu:
                 machine.Timer(-1, period=1000, mode=machine.Timer.ONE_SHOT, callback=lambda t: machine.reset())

@@ -9,6 +9,6 @@ Use obsidian to correctly view documentation
 5. [[Memory]]
 6. [[Events storing]]
 7. [[Users]]
-8. 
+8. [[Firmware update]]
 9. 
 10. [[esp32-uclient/tasks|tasks]]

@@ -7,9 +7,9 @@
 	- [x] Non integer registers
 	- [x] Memory operations
 	- [ ] FW-updater 
-		- [x] fs-file
+		- [x] fs file
 		- [x] Uploading via html
-		- [ ] uploading via mqtt
+		- [x] uploading via mqtt
 		- [ ] downloading from http
 		- [ ] docs
 	- [x] Users
@@ -31,6 +31,7 @@
 		- [ ] describe user-server-device application examples and graphs
 		- [ ] describe protocol briefly
 	- [ ] CI/CD
+	- [ ] Batch transfers
 - [ ] update USERVER according to last changes in UCLIENT
 	- [ ] Protocol V2
 		- [x] registration
