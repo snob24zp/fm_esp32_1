@@ -79,3 +79,41 @@ Example:
 
 ## Firmware update via out-of-band download
 
+The main difference with in-band uploading, that there device itself downloads file from the server. For such purpose there added topic `fw_url`
+
+Algo:
+
+1. Server sends url to `fw_url` topic
+2. Device downloads it, while it downloads, device sent total downloaded size, on done device will send word `OK`
+3. Send `2` to `/fw_upd` to check the uploaded image and wait for answer `OK`
+4. Send `3` to `/fw_upd` to update the entire system, there will not be any answer
+
+Example:
+
+```
+[1698835346] >48:3f:da:55:07:5b/3996365522/fw_url "https://release.dlab.pw/AR.FW.latest.uebf"  
+[1698835347] <48:3f:da:55:07:5b/3996365522/fw_url 512  
+[1698835347] <48:3f:da:55:07:5b/3996365522/fw_url 1024  
+[1698835347] <48:3f:da:55:07:5b/3996365522/fw_url 1536
+...
+[1698835357] <48:3f:da:55:07:5b/3996365522/fw_url 174080  
+[1698835357] <48:3f:da:55:07:5b/3996365522/fw_url 174592  
+[1698835357] <48:3f:da:55:07:5b/3996365522/fw_url 174848  
+[1698835364] <48:3f:da:55:07:5b/3996365522/fw_url "OK"
+[1698835366] >48:3f:da:55:07:5b/3996365522/fw_upd 2  
+[1698835367] <48:3f:da:55:07:5b/3996365522/fw_upd "OK"  
+[1698835368] >48:3f:da:55:07:5b/3996365522/fw_upd 3  
+[1698835368] <48:3f:da:55:07:5b/3996365522/fw_upd "OK"
+```
+
+**OUT-OF-BAND Downloading forbidden if device don't have file `data/fwupd.hosts` and this file doesn't contains first part of the URL**
+
+Example of contents of the `data/fwupd.hosts` file:
+
+```
+http://releases.dlab.pw/
+http://x.ks.ua/
+```
+
+That's shows that firmware file could be downloaded only from this sites which starts with this part of url. i.e -> http://releases.dlab.pw/ar-device/AR.FW.latest.uebf will be allowed, but http://dlab.pw/AR.FW.latest.uebf not
+

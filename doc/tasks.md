@@ -6,12 +6,12 @@
 	- [x] Submitting registers
 	- [x] Non integer registers
 	- [x] Memory operations
-	- [ ] FW-updater 
+	- [x] FW-updater 
 		- [x] fs file
 		- [x] Uploading via html
 		- [x] uploading via mqtt
-		- [ ] downloading from http
-		- [ ] docs
+		- [x] downloading from http
+		- [x] docs
 	- [x] Users
 		- [x] signing messages
 		- [x] storing users
@@ -24,9 +24,12 @@
 		- [x] time-series db
 		- [x] Storing events
 		- [x] Publishing events
-	- [ ] version topic
+	- [ ] correct inheritance
+	- [x] version topic
+	- [x] ping topic test
+	- [x] lifetime and status topic tests
 	- [ ] Error topics tests
-	- [ ] hub topic tests
+	- [x] hub topic tests
 	- [ ] Server topic
 	- [ ] Documentation
 		- [ ] describe user-server-device application examples and graphs

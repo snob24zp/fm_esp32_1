@@ -1,12 +1,10 @@
 # Firmware update topics
 
-## In-band MQTT update
-
-To update firmware via mqtt there are two topics:
-
 * `fw_upd` - Controls the internal state of firmware update
 * `fw_pkg` - For transferring firmware data chunks
-
+## fw_upd topic 
+* `fw_upd` - Controls the internal state of firmware update
+* `fw_pkg` - For transferring firmware data chunks
 Where `/fw_upd` can receive only 4 commands which represents (equals) of the internal state firmware update finite state machine
 
 | Command/State | Description | 
@@ -16,12 +14,32 @@ Where `/fw_upd` can receive only 4 commands which represents (equals) of the int
 | 2 | Verification command/state. On this step device tries to mount received decrypted disk image, if error happens will be returned 'error' |
 | 3 | Reboot and start copying files (updating) from mounted disk image to root partition |
 
+## fw_pkg topic
+
 `/fw_pkg` receives only raw chunk data (for AR device 512 byte). To this query will be returned a number of next chunk, or an error. Return have JSON object format: 
 
 ```
 <-- ur+pvhIKUSECbFeXm7z4URHbIss3f+...
 --> {"chunk", 118}
 ```
+
+## fw_url topic
+
+`fw_url` topic do the same job as `fw_pkg` topic, but device will itself downloads the firmware file from the server via http connection.
+Total downloaded size while be sent as response while downloading is ongoing. When downloading will be done, device will return word 'OK'
+
+```
+[1698835346] >48:3f:da:55:07:5b/3996365522/fw_url "https://release.dlab.pw/AR.FW.latest.uebf"  
+[1698835347] <48:3f:da:55:07:5b/3996365522/fw_url 512  
+[1698835347] <48:3f:da:55:07:5b/3996365522/fw_url 1024  
+[1698835347] <48:3f:da:55:07:5b/3996365522/fw_url 1536
+...
+[1698835357] <48:3f:da:55:07:5b/3996365522/fw_url 174080  
+[1698835357] <48:3f:da:55:07:5b/3996365522/fw_url 174592  
+[1698835357] <48:3f:da:55:07:5b/3996365522/fw_url 174848  
+[1698835364] <48:3f:da:55:07:5b/3996365522/fw_url "OK"
+```
+## Inband example
 
 Example:
 	1. Send `1` to `/fw_upd`, and wait to `OK` - That's initialize firmware update stack
@@ -56,3 +74,43 @@ Example:
 [1698504765] >48:3f:da:55:07:5b/3996365522/fw_upd 3  
 [1698504765] <48:3f:da:55:07:5b/3996365522/fw_upd "OK"
 ```
+
+## Out-of-band example
+
+Algo:
+
+1. Server sends url to `fw_url` topic
+2. Device downloads it, while it downloads, device sent total downloaded size, on done device will send word `OK`
+3. Send `2` to `/fw_upd` to check the uploaded image and wait for answer `OK`
+4. Send `3` to `/fw_upd` to update the entire system, there will not be any answer
+
+Example:
+
+```
+[1698835346] >48:3f:da:55:07:5b/3996365522/fw_url "https://release.dlab.pw/AR.FW.latest.uebf"  
+[1698835347] <48:3f:da:55:07:5b/3996365522/fw_url 512  
+[1698835347] <48:3f:da:55:07:5b/3996365522/fw_url 1024  
+[1698835347] <48:3f:da:55:07:5b/3996365522/fw_url 1536
+...
+[1698835357] <48:3f:da:55:07:5b/3996365522/fw_url 174080  
+[1698835357] <48:3f:da:55:07:5b/3996365522/fw_url 174592  
+[1698835357] <48:3f:da:55:07:5b/3996365522/fw_url 174848  
+[1698835364] <48:3f:da:55:07:5b/3996365522/fw_url "OK"
+[1698835366] >48:3f:da:55:07:5b/3996365522/fw_upd 2  
+[1698835367] <48:3f:da:55:07:5b/3996365522/fw_upd "OK"  
+[1698835368] >48:3f:da:55:07:5b/3996365522/fw_upd 3  
+[1698835368] <48:3f:da:55:07:5b/3996365522/fw_upd "OK"
+```
+
+**OUT-OF-BAND Downloading forbidden if device don't have file `data/fwupd.hosts` and this file doesn't contains first part of the URL**
+
+Example of contents of the `data/fwupd.hosts` file:
+
+```
+http://releases.dlab.pw/
+http://x.ks.ua/
+```
+
+That's shows that firmware file could be downloaded only from this sites which starts with this part of url. i.e -> http://releases.dlab.pw/ar-device/AR.FW.latest.uebf will be allowed, but http://dlab.pw/AR.FW.latest.uebf not
+
+

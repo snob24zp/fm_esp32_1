@@ -46,7 +46,8 @@ class HUB(log):
             ["time", self.__time_hnd, '/'],
             ["lifetime", self.__lifetime_hnd, '>'],
             ["error", self.__error_hnd, '>'],
-            ["ping", self.__ping_hnd, '>']
+            ["ping", self.__ping_hnd, '>'],
+            ["version", self.__version_hnd, '>']
         ]
         
         self.root_hnd = [
@@ -112,14 +113,14 @@ class HUB(log):
         '''
         Обработчик /{hub}/lifetime
         '''
-        self.info("Set new lifetime: {lifetime: %s}", value)
+        self.info(f"Set new lifetime: {value}")
         self.lifetime = int(value)
 
     def __error_hnd(self, value):
         '''
         Обработчик /{hub}/error
         '''
-        self.info("Server error command: {value: %d}", int(value))
+        self.info(f"Server error command: {value}")
         if int(value) == 1:
             self.state = self.REG_DEREG
             if self._on_chg_state is not None and callable(self._on_chg_state):
@@ -140,7 +141,15 @@ class HUB(log):
         Обработчик /{hub}/ping
         '''
         self.info("Ping command")
-        self.pub_hub("ping", "ok")
+        if str(value) == 'ping':
+            self.pub_hub("ping", "OK")
+    
+    def __version_hnd(self, value):
+        '''
+        Обработчик /{hub}/version
+        '''
+        if str(value) == 'version':
+            self.pub_hub("version", HUB.VERSION)
 
     def __send_reg(self):
         '''
@@ -178,7 +187,6 @@ class HUB(log):
         '''
         Обработчик топика >hub
         '''
-        value = value.decode("utf-8")
         search_dev = int(value)
         for dev in self.devices:
             if dev.serial == search_dev:

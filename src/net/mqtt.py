@@ -1,6 +1,6 @@
 import socket as socket
 import struct as struct
-from binascii import hexlify
+import time
 
 
 class MQTTException(Exception):
@@ -37,6 +37,7 @@ class MQTTClient:
         self.lw_qos = 0
         self.lw_retain = False
         self.q = []
+        self._keepalive_tmr = time.time()
 
     def _send_str(self, s:str):
         self.sock.send(struct.pack("!H", len(s)))
@@ -68,9 +69,8 @@ class MQTTClient:
         addr = socket.getaddrinfo(self.server, self.port)[0][-1]
         self.sock.connect(addr)
         if self.ssl:
-            import ussl
-
-            self.sock = ussl.wrap_socket(self.sock, **self.ssl_params)
+            import ssl
+            self.sock = ssl.wrap_socket(self.sock, **self.ssl_params)
         premsg = bytearray([0x10,0x00,0x00,0x00,0x00])
         msg = bytearray(b"\x04MQTT\x04\x02\0\0")
 
@@ -110,6 +110,8 @@ class MQTTClient:
         assert resp[0] == 0x20 and resp[1] == 0x02
         if resp[3] != 0:
             raise MQTTException(resp[3])
+
+        self._keepalive_tmr = time.time()
         return resp[2] & 1
 
     def disconnect(self):
@@ -117,6 +119,7 @@ class MQTTClient:
         self.sock.close()
 
     def ping(self):
+        self._keepalive_tmr = time.time()
         self.sock.send(b"\xc0\0")
 
     def publish(self, topic, msg, retain=False, qos=0):
@@ -146,6 +149,7 @@ class MQTTClient:
             struct.pack_into("!H", pkt, 0, pid)
             self.sock.send(pkt[:2])
         self.sock.send(msg)
+        self._keepalive_tmr = time.time()
         if qos == 1:
             while 1:
                 op = self.wait_msg()
@@ -176,6 +180,7 @@ class MQTTClient:
                 assert resp[1] == pkt[2] and resp[2] == pkt[3]
                 if resp[3] == 0x80:
                     raise MQTTException(resp[3])
+                self._keepalive_tmr = time.time()
                 return
 
     # Wait for a single incoming MQTT message and process it.
@@ -183,9 +188,22 @@ class MQTTClient:
     # set by .set_callback() method. Other (internal) MQTT
     # messages processed internally.
     def wait_msg(self):
-        res = self.sock.recv(1)
+        res = None
+        try:
+            res = self.sock.recv(1)
+        except OSError as ex:
+            if ex.errno == 11: # blocking issue on cpython
+                res = None
+            else:
+                raise ex
+
         self.sock.setblocking(True)
         if res is None:
+            if self.keepalive:
+                diff = time.time() - self._keepalive_tmr
+                backoff = self.keepalive - (self.keepalive * 0.1)
+                if diff > backoff:
+                    self.ping()
             return None
         if res == b"":
             raise OSError(-1)
