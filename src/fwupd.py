@@ -5,7 +5,6 @@ import struct
 import time
 import sys
 
-
 import uclient.aes as aes
 from log import log
 

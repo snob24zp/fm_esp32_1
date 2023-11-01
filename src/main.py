@@ -1,6 +1,5 @@
 import board
 import time
-import base64
 import hashlib
 from config import config_t
 import net.webapp as webapp
@@ -9,37 +8,31 @@ import sys
 from uclient.device import device_base
 if sys.version.count('MicroPython') > 0:
     import ntptime
-    import _thread 
 else:
-    import threading
     import code
 
 from uclient.evtdev import event_device
 from uclient.userdev import user_device
+from uclient.fwupd import fwupd_device
 from uclient.hub import HUB
-
+from fwupd import fwupd
+from threadmpy import start_thread
 
 def gen_device_id():
     return hashlib.sha256(b'DUT').digest()
 
+device = None
 
-class uart_device(user_device, event_device):
+class uart_device(user_device,fwupd_device, event_device ):
     def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
         super().__init__(gen_device_id(), serial, dtype, regs, status)
         super(user_device, self).__init__(serial = serial, dtype= dtype, regs = regs, status = status)
-
-
-def start_thread(cb, args):
-    if sys.version.count('MicroPython') > 0:
-        _thread.stack_size(10*1024)
-        _thread.start_new_thread(cb, args)
-    else:
-        _th = threading.Thread(target=cb, name=f"{cb.__name__}-thread", daemon=True, args=args)
-        _th.start()
-
+        super(fwupd_device, self).__init__(serial = serial, dtype= dtype, regs = regs, status = status)
+        fwupd.__init__(self)
 
 
 def main():
+    global device
     cfg = config_t()
     print(f'Current config: {cfg.json()}')
     if sys.version.count('MicroPython') > 0:

@@ -24,6 +24,7 @@
 		- [x] time-series db
 		- [x] Storing events
 		- [x] Publishing events
+	- [ ] version topic
 	- [ ] Error topics tests
 	- [ ] hub topic tests
 	- [ ] Server topic
@@ -47,3 +48,5 @@
 		- [ ] Batch transfers
 	- [ ] CI/CD ?
 - [ ] UART bridge example app
+- [ ] build executable file for windows
+- [ ] attach modem

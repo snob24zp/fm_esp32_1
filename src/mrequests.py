@@ -1,6 +1,10 @@
 """A HTTP client module for MicroPython with an API similar to requests."""
 
 import sys
+import json
+import base64
+import json
+from log import log
 
 try:
     import socket
@@ -12,35 +16,6 @@ MICROPY = sys.implementation.name == "micropython"
 MAX_READ_SIZE = 4 * 1024
 
 
-def encode_basic_auth(user, password):
-    from ubinascii import b2a_base64
-
-    auth_encoded = b2a_base64(b"%s:%s" % (user, password)).rstrip(b"\n")
-    return {b"Authorization": b"Basic %s" % auth_encoded}
-
-
-def head(url, **kw):
-    return request("HEAD", url, **kw)
-
-
-def get(url, **kw):
-    return request("GET", url, **kw)
-
-
-def post(url, **kw):
-    return request("POST", url, **kw)
-
-
-def put(url, **kw):
-    return request("PUT", url, **kw)
-
-
-def patch(url, **kw):
-    return request("PATCH", url, **kw)
-
-
-def delete(url, **kw):
-    return request("DELETE", url, **kw)
 
 
 def parse_url(url):
@@ -239,10 +214,9 @@ class Response:
     def text(self):
         return str(self.content, self.encoding)
 
+    @property
     def json(self):
-        import ujson
-
-        return ujson.loads(self.content)
+        return json.loads(self.content)
 
 
 def request(
@@ -263,9 +237,7 @@ def request(
 
     if json is not None:
         assert data is None
-        import ujson
-
-        data = ujson.dumps(json)
+        data = json.dumps(json)
 
     ctx = RequestContext(url, method)
 
@@ -337,7 +309,7 @@ def request(
                 if l.endswith(b"\r\n") or i > MAX_READ_SIZE:
                     break
 
-            # print("Response: %s" % l.decode("ascii"))
+            print("Response: %s" % l.decode("ascii"))
             l = l.split(None, 2)
             resp.status_code = int(l[1])
 
@@ -352,7 +324,7 @@ def request(
                 if l.startswith(b"Location:"):
                     ctx.set_location(resp.status_code, l[9:].strip().decode("ascii"))
 
-                # print("Header: %r" % l)
+                print("Header: %r" % l)
                 resp.add_header(l)
         except OSError:
             sock.close()
@@ -370,3 +342,32 @@ def request(
             break
 
     return resp
+
+
+def encode_basic_auth(user, password):
+    auth_encoded = base64.b64decode(f"{user}:{password}").decode()
+    return {b"Authorization": b"Basic %s" % auth_encoded}
+
+
+def head(url, **kw) -> Response:
+    return request("HEAD", url, **kw)
+
+
+def get(url, **kw) -> Response:
+    return request("GET", url, **kw)
+
+
+def post(url, **kw) -> Response:
+    return request("POST", url, **kw)
+
+
+def put(url, **kw) -> Response:
+    return request("PUT", url, **kw)
+
+
+def patch(url, **kw) -> Response:
+    return request("PATCH", url, **kw)
+
+
+def delete(url, **kw) -> Response:
+    return request("DELETE", url, **kw)
