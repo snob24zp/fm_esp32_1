@@ -25,10 +25,7 @@ device = None
 
 class uart_device(user_device,fwupd_device, event_device ):
     def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
-        super().__init__(gen_device_id(), serial, dtype, regs, status)
-        super(user_device, self).__init__(serial = serial, dtype= dtype, regs = regs, status = status)
-        super(fwupd_device, self).__init__(serial = serial, dtype= dtype, regs = regs, status = status)
-        fwupd.__init__(self)
+        super().__init__(serial, dtype, regs, status)
 
 
 def main():

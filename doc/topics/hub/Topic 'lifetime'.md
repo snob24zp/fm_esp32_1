@@ -7,7 +7,6 @@ Topic 'lifetime' responsible about time between publishing statuses
 skinparam backgroundcolor transparent
 skinparam monochrome reverse
 
-
 entity Device as device
 entity Server as server
 
@@ -30,3 +29,4 @@ Example:
 [1698846008] >48:3f:da:55:07:5b/lifetime 120
 [1698846127] <48:3f:da:55:07:5b/3996365522/status 30 
 ```
+

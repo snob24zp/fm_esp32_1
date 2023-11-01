@@ -15,6 +15,7 @@ except ImportError:
 from uclient.device import device_base
 import uclient.aes as aes
 import uclient.hmac as hmac
+from config import config_t
 
 class user:
     MEM_DIR = 'data'
@@ -86,9 +87,11 @@ class user_device(device_base):
     PERM_USERS  = 0x40
     PERM_F_RES  = 0x80
 
-    def __init__(self, device_id: bytes,  serial: int, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
+    def __init__(self,  serial: int, dtype=device_base.DEVICE_TYPE, regs={}, status=0, device_id: bytes = None):
+        
+            
         super().__init__(serial, dtype, regs, status)
-        self._device_id = device_id
+        self._device_id = bytes.fromhex(config_t().device_id) if device_id is None else device_id
         if not user_device.MEM_DIR in os.listdir('.'):
             os.mkdir(user_device.MEM_DIR)
  

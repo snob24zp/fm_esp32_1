@@ -1,6 +1,7 @@
 
 from json_object import json_object
 import os
+import hashlib
 
 import sys
 if sys.version.count('MicroPython') > 0:
@@ -24,6 +25,7 @@ class config_t(json_object):
         self.server = "x.ks.ua"
         self.token = bytes.fromhex(self.mac).hex(':')
         self.serial = int.from_bytes(bytes.fromhex(self.mac)[2:],'little')
+        self.device_id = hashlib.sha256(self.mac.encode()).digest().hex()
 
         if cfg_file in os.listdir('.'):
             with open(cfg_file, "rt") as c:
