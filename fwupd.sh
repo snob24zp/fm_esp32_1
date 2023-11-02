@@ -54,7 +54,8 @@ done
 
 for _lib in ${HTMLS[@]}; do
     if [ $_lib != '.' ]; then
-        echo "Create dir $_lib"
+        echo "Create dir ./src/$_lib"
+        mkdir -p "./src/$_lib"
         mkdir -p "$OUT_DIR/$_lib"
     fi
 
