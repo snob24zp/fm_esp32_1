@@ -12,6 +12,7 @@ SRCS=(hw "hw/${BOARD%.*}" net uclient .)
 HTMLS=(static)
 OUT_DIR=fw.tmp
 FS_FILE=out/fw.fs
+MPY_CROSS=tools/mpy-cross
 
 mkdir -p $OUT_DIR
 rm -rf $OUT_DIR/*
@@ -35,7 +36,7 @@ for _lib in ${SRCS[@]}; do
 
         _rf="$_lib/$(basename $_f)"
         _mpy="./src/$_lib/$(basename $_f .py).mpy"
-        mpy-cross $_f
+        $MPY_CROSS $_f
         if [ -f $_mpy ] && [ $(basename $_f) != "main.py" ]; then
             _rmpy="$_lib/$(basename $_rf .py).mpy"
             echo "copying $_mpy -> $_rmpy"
