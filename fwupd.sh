@@ -85,10 +85,10 @@ for _lib in ${HTMLS[@]}; do
 done
 
 cp static/favicon.ico "$OUT_DIR/static/favicon.ico"
-
+ls -la $OUT_DIR/
 sz=$(du -sb $OUT_DIR | cut -f 1)
 
-echo "Creating littleFS filesystem image"
+echo "Creating littleFS filesystem image (sz: $sz)"
 
 rm -f $FS_FILE
 ./tools/mklittlefs -d 5 -c $OUT_DIR -b 512 -s $(($sz + 8196)) $FS_FILE
