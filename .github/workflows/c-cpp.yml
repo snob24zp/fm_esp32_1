@@ -9,7 +9,7 @@ on:
 jobs:
   CppCheck:
     name: 'Статическое тестирование кода'
-    runs-on: buildkitsandbox
+    runs-on: self-hosted
     steps:
     - uses: actions/checkout@v2
       with:
@@ -21,7 +21,7 @@ jobs:
         path: out/code-check.log
   Build:
     name: 'Сборка'
-    runs-on: buildkitsandbox
+    runs-on: self-hosted
     steps:
     - uses: actions/checkout@v2
       with:
@@ -37,7 +37,7 @@ jobs:
         path: out/AR.FW.latest.uebf
   Test:
     name: 'Тестирование'
-    runs-on: buildkitsandbox
+    runs-on: self-hosted
     needs: Build
     steps:
     - run: ./ci/01-tests-simu.sh
