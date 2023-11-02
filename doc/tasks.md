@@ -36,8 +36,11 @@
 	- [ ] Server topic
 	- [ ] Documentation
 		- [ ] describe user-server-device application examples and graphs
-		- [ ] describe protocol briefly
+		- [x] describe protocol briefly
 	- [ ] CI/CD
+		- [ ] release page
+		- [ ] windows pyinstaller
+		- [ ] generate sphinx documentation
 	- [ ] Batch transfers
 - [ ] update USERVER according to last changes in UCLIENT
 	- [ ] Protocol V2

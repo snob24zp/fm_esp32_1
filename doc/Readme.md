@@ -1,5 +1,7 @@
 # Brief 
 
+[![Release CI](https://github.com/intx82/esp32-mpy-uclient/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/intx82/esp32-mpy-uclient/actions/workflows/c-cpp.yml)
+
 Use obsidian to correctly view documentation
 
 1. [[Hardware and firmware summary]]

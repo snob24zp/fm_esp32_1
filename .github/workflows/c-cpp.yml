@@ -51,7 +51,7 @@ jobs:
         path: out/tests/
   Release:
     name: 'Подготовка релиза'
-    runs-on: buildkitsandbox
+    runs-on: self-hosted
     needs: Test
     # if: github.event_name == 'push' && (contains(github.ref, '/heads/master') || contains(github.ref, '/tags/v')))
     steps:

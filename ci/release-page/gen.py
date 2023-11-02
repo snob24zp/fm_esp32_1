@@ -9,7 +9,7 @@ with open('./ci/release-page/index.html') as f:
     repo = git.Repo('.')
     commits = []
     for c in list(repo.iter_commits(sys.argv[2], max_count=5)):
-        commit_lnk = f'<a href="https://github.com/-/{c.hexsha}">{c.hexsha}</a>'
+        commit_lnk = f'<a href="https://github.com/esp32-mpy-uclient/commit/{c.hexsha}">{c.hexsha}</a>'
         msg_wlnk = ""
         for word in c.message.split(' '):
             if word[0] == '#':
