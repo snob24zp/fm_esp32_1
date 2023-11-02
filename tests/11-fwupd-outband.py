@@ -28,7 +28,8 @@ class fwupd_outband_test(test_tpl):
     def setUp(self):
         super().setUp(dtype=fwupd_device)
         os.system('./fwupd.sh')
-        os.system('scp ./out/AR.FW.latest.uebf root@dlab.pw:/var/www/release/')
+        os.system('scp ./out/AR.FW.latest.uebf root@dlab.pw:/var/www/release/esp32-mpy-uclient')
+        os.system('cp ./out/AR.FW.latest.uebf /var/www/release/esp32-mpy-uclient')
         with open('out/fw.fs', 'rb') as fd:
             self.ref = fd.read()
 
