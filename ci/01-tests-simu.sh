@@ -7,6 +7,8 @@ mkdir -p ./data
 mkdir -p ./out
 mkdir -p ./out/tests
 
+cp -v out/AR.FW.latest.uebf /var/www/release
+
 export ret=0
 for f in $TEST_DIR
 do
