@@ -9,7 +9,7 @@ on:
 jobs:
   CppCheck:
     name: 'Статическое тестирование кода'
-    runs-on: release
+    runs-on: buildkitsandbox
     steps:
     - uses: actions/checkout@v2
       with:
@@ -21,7 +21,7 @@ jobs:
         path: out/code-check.log
   Build:
     name: 'Сборка'
-    runs-on: release
+    runs-on: buildkitsandbox
     steps:
     - uses: actions/checkout@v2
       with:
@@ -37,7 +37,7 @@ jobs:
         path: out/AR.FW.latest.uebf
   Test:
     name: 'Тестирование'
-    runs-on: release
+    runs-on: buildkitsandbox
     needs: Build
     steps:
     - run: ./ci/01-tests-simu.sh
@@ -47,7 +47,7 @@ jobs:
         path: out/tests/
   Release:
     name: 'Подготовка релиза'
-    runs-on: release
+    runs-on: buildkitsandbox
     needs: Test
     # if: github.event_name == 'push' && (contains(github.ref, '/heads/master') || contains(github.ref, '/tags/v')))
     steps:
