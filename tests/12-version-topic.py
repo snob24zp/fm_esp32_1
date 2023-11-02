@@ -31,7 +31,7 @@ class version_topic_test(test_tpl):
     def test(self):
         self.subscribe_hub('version', self.on_ver)
         self.publish_hub('version', 'version')
-        self.wait_condition(self.rett != 'version', 10)
+        self.wait_condition(lambda: self.rett == 'version', 10)
         self.assertTrue(self.retv == version.STATIC_VERSION)
 
 

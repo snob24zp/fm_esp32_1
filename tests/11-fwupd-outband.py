@@ -27,6 +27,8 @@ class fwupd_outband_test(test_tpl):
 
     def setUp(self):
         super().setUp(dtype=fwupd_device)
+        os.system('./fwupd.sh')
+        os.system('scp ./out/AR.FW.latest.uebf root@dlab.pw:/var/www/release/')
         with open('out/fw.fs', 'rb') as fd:
             self.ref = fd.read()
 
@@ -43,8 +45,6 @@ class fwupd_outband_test(test_tpl):
         self.dl_sz = msg
 
     def test(self):
-        os.system('./fwupd.sh')
-        os.system('scp ./out/AR.FW.latest.uebf root@dlab.pw:/var/www/release/')
         with open(fwupd_device.ALLOWED_HOSTS_FILE, 'wt') as fd:
             fd.writelines(['https://release.dlab.pw'])
 

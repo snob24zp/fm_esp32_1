@@ -25,7 +25,7 @@ class ping_topic_test(test_tpl):
     def test(self):
         self.subscribe_hub('ping', self.on_ver)
         self.publish_hub('ping', 'ping')
-        self.wait_condition(self.rett != 'ping', 10)
+        self.wait_condition(lambda: self.rett == 'ping', 10)
         self.assertTrue(self.retv == 'OK')
 
 

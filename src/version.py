@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
+"""Provides device version, use STATIC_VERSION on device, and get_version() to rebuild this file"""
+STATIC_VERSION = "R231102;master;d3e612ed8e165964d06109854821ca9d77f68aa7"
 
-STATIC_VERSION = "R231101;master;f37d31af66a12acd566d178da4394716a13735a0"
-
-def get_version():    
-    import datetime
+def get_version():
+    """Function to rebuild the device version string"""
     import git
     global STATIC_VERSION
 
@@ -24,7 +24,7 @@ def get_version():
         with open(__file__, 'wt') as fd:
             fd.writelines(content)
 
-    except git.InvalidGitRepositoryError as ex:
+    except git.InvalidGitRepositoryError:
         pass
     return STATIC_VERSION
 

@@ -5,7 +5,7 @@ import struct
 import time
 import sys
 
-import uclient.aes as aes
+from uclient import aes 
 from log import log
 
 
@@ -114,7 +114,7 @@ class fwupd(log):
     def fwupd(self, cmd):
         if not fwupd.isnumeric(cmd):
             return 'Command should be numeric'
-        
+
         if int(cmd) == 0:
             self.reset()
             return 'OK'
@@ -160,4 +160,3 @@ class fwupd(log):
 
                 return {"chunk": idx + 1}
         return {"error": "Wrong state", "chunk": 0}
-

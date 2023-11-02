@@ -26,9 +26,9 @@ class lifetime_test(test_tpl):
 
     def wait_status(self):
         print(f"Waiting for status: {self._uclient.lifetime + 1} s")
-        self.wait_condition(lambda: self.rett is not None, self._uclient.lifetime + 1)
         self.rett = None
-        
+        self.wait_condition(lambda: self.rett is not None, self._uclient.lifetime + 1)
+
     
     def status(self):
         self.subscribe_hub('status', self.on_status)

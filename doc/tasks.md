@@ -1,5 +1,6 @@
 - [x] WEB-APP
 - [x] MQTT transport
+	- [ ] mqtt-ssl test
 - [ ] UCLIENT
 	- [x] Registration
 	- [x] Publishing registers

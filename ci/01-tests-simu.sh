@@ -9,7 +9,7 @@ for f in $TEST_DIR
 do
     if [ -x "$f" ]; then
         echo "-----  Start test [$f]  -----"
-        $f
+        python3 $f
         ret=$?
         if [ $ret -ne 0 ]; then
             echo "Test fails with code: $ret"

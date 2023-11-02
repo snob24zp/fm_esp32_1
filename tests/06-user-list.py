@@ -42,7 +42,8 @@ class user_list_test(test_tpl):
 
     def on_list(self, topic, value):
         self.logger.info(f"list response: ({topic}) {value}")
-        self.user_recv_done = True
+        if value == {}:
+            self.user_recv_done = True
         self._income_users.append(value)
 
     def send_list_cmd(self):
