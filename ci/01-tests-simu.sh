@@ -8,6 +8,8 @@ mkdir -p ./out
 mkdir -p ./out/tests
 
 mkdir -p /var/www/release/esp32-mpy-uclient
+ls -la out
+ls -la /var/www/release
 cp -v out/AR.FW.latest.uebf /var/www/release/esp32-mpy-uclient/AR.FW.latest.uebf
 
 export ret=0
