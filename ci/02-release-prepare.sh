@@ -27,7 +27,7 @@ create_releasefile
 for f in ./artifacts/tests-summary/*.xml
 do
          echo "Converting $f"
-         junit2html $f
+         /home/github/.local/bin/junit2html $f
 done
 mkdir -p "$CWD/tests"
 cp -R ./artifacts/tests-summary/*.html  "$CWD/tests"
