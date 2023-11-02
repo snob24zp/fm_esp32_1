@@ -24,8 +24,8 @@ class event_device(mem_device):
     FPATH = f'{MEM_DIR}/{FNAME}'
     TBLPATH = f'{MEM_DIR}/{FNAME}'
 
-    def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
-        super().__init__(serial, dtype, regs, status)
+    def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0, device_id: bytes  = None):
+        super().__init__(serial, dtype, regs, status, device_id)
         self._dbs = {}
 
     def set_reg(self, reg, value):

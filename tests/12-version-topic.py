@@ -1,10 +1,16 @@
 #!/usr/bin/python3
 
-
-
 import os
 import unittest
 import xmlrunner
+import sys
+
+
+path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(path)
+sys.path.append(f'{path}{os.path.sep}src')
+sys.path.append(f'{path}{os.path.sep}src{os.path.sep}uclient')
+
 import version
 
 

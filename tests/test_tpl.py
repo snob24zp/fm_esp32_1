@@ -22,7 +22,7 @@ sys.path.append(f'{path}{os.path.sep}src')
 sys.path.append(f'{path}{os.path.sep}src{os.path.sep}uclient')
 
 from uclient.hub import HUB
-from uclient.evtdev import event_device
+from uclient.fwupd import fwupd_device
 import uclient.aes as aes
 import user_utils as uu
 from config import config_t
@@ -31,7 +31,7 @@ from config import config_t
 class test_tpl(unittest.TestCase):
     MEM_DIR = 'data'
 
-    def setUp(self, dtype=event_device, server=None, token=None, serial=None, user=None, pwd=None, skip_add_user = True, dargs = {}):
+    def setUp(self, dtype=fwupd_device, server=None, token=None, serial=None, user=None, pwd=None, skip_add_user = True, dargs = {}):
         super().setUp()
         self.cfg = config_t()
         if token is not None:
@@ -52,7 +52,6 @@ class test_tpl(unittest.TestCase):
         for _file in os.listdir(f'./{test_tpl.MEM_DIR}'):
             os.unlink(f'./{test_tpl.MEM_DIR}/{_file}')
         
-        self.cfg.device_id = base64.b64decode(self.cfg.device_id)
         self.cfg.user_key = uu.create_key(self.cfg.user, self.cfg.pwd)
 
         self.logger = logging.getLogger('TEST')
@@ -62,7 +61,13 @@ class test_tpl(unittest.TestCase):
         self.__ch.setFormatter(self.__formatter)
         self.logger.addHandler(self.__ch)
         self.logger.setLevel(logging.INFO)
-        self._device = dtype(serial = self.cfg.serial, **dargs)
+        if 'device_id' in dargs:
+             self.cfg.device_id = dargs['device_id']
+             del dargs['device_id']
+        else:
+            self.cfg.device_id = base64.b64decode(self.cfg.device_id)
+             
+        self._device = dtype(serial = self.cfg.serial, device_id=self.cfg.device_id, **dargs)
 
         self._uclient = HUB(f'{self.cfg.broker["host"]}:{self.cfg.broker["port"]}', self.cfg.token, [self._device])
         self._uclient.connect()
@@ -75,13 +80,13 @@ class test_tpl(unittest.TestCase):
 
     def _ucl_step_thread(self):
         while True:
-            #try:
-            if self._uclient is not None:
-                self._uclient.step()
-            # except Exception as ex:
-            #     ex_type, ex, tb = sys.exc_info()
-            #     traceback.print_tb(tb)
-            #     break
+            try:
+                if self._uclient is not None:
+                    self._uclient.step()
+            except Exception as ex:
+                 ex_type, ex, tb = sys.exc_info()
+                 traceback.print_tb(tb)
+                 break
 
     @staticmethod
     def int2float(b):
@@ -337,7 +342,7 @@ class test_tpl(unittest.TestCase):
                 self.assertTrue(time.perf_counter() < (start_time + timeout))
                 time.sleep(0.01)
             self.logger.info(f"OP take: {round((time.perf_counter() - start_time) * 1000, 3)} ms")
-        time.sleep(1)
+        #time.sleep(0.1)
 
 
 if __name__ == "__main__":

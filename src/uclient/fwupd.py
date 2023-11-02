@@ -1,17 +1,20 @@
 
 import os
 from fwupd import fwupd, ueba_pkg
-from uclient.device import device_base
+
 import mrequests
 from threadmpy import start_thread
 import base64
 
-class fwupd_device(device_base, fwupd):
+from uclient.device import device_base
+from uclient.evtdev import event_device
+
+class fwupd_device(event_device, fwupd):
     ALLOWED_HOSTS_FILE = 'data/fwupd.hosts'
     UEBA_FW = 'fw.uebf'
 
-    def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0) -> None:
-        super().__init__(serial, dtype, regs, status)
+    def __init__(self, serial: int, dtype:int=device_base.DEVICE_TYPE, regs: dict={}, status: int=0, device_id : bytes = None) -> None:
+        super().__init__(serial, dtype, regs, status, device_id)
         super(device_base, self).__init__()
         self.dl_run = 0
         

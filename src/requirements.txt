@@ -1,0 +1,3 @@
+GitPython==3.1.40
+pycryptodome==3.19.0
+

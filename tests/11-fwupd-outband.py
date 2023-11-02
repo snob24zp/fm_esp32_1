@@ -1,10 +1,16 @@
 #!/usr/bin/python3
 
 
-import sys
 import os
 import unittest
 import xmlrunner
+
+import sys
+path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(path)
+sys.path.append(f'{path}{os.path.sep}src')
+sys.path.append(f'{path}{os.path.sep}src{os.path.sep}uclient')
+
 
 from uclient.fwupd import fwupd_device
 from fwupd import fwupd
@@ -37,6 +43,8 @@ class fwupd_outband_test(test_tpl):
         self.dl_sz = msg
 
     def test(self):
+        os.system('./fwupd.sh')
+        os.system('scp ./out/AR.FW.latest.uebf root@dlab.pw:/var/www/release/')
         with open(fwupd_device.ALLOWED_HOSTS_FILE, 'wt') as fd:
             fd.writelines(['https://release.dlab.pw'])
 

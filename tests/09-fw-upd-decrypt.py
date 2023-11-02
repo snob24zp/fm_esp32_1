@@ -2,10 +2,17 @@
 
 import os
 import unittest
-import hashlib
 import xmlrunner
 import unittest
 import xml.etree.ElementTree as xml_parser
+
+
+import sys
+path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(path)
+sys.path.append(f'{path}{os.path.sep}src')
+sys.path.append(f'{path}{os.path.sep}src{os.path.sep}uclient')
+
 import fwupd
 
 class fwupd_decrypt_test(unittest.TestCase):

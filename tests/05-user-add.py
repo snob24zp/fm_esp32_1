@@ -2,14 +2,19 @@
 
 
 import base64
-import string
 import sys
 import os
 import time
 import unittest
 import xmlrunner
 from config import config_t
-import random
+
+
+path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(path)
+sys.path.append(f'{path}{os.path.sep}src')
+sys.path.append(f'{path}{os.path.sep}src{os.path.sep}uclient')
+
 from uclient.userdev import user_device
 
 try:
@@ -29,6 +34,14 @@ class user_add_test(test_tpl):
         self.user_res = 0
         self.users = []
 
+    def gen_username(self):
+        un = super().gen_username()
+        while un in self.users:
+            un = super().gen_username()
+
+        self.users.append(un)
+        return un
+
     def add_admin_user(self):
         self.add_user(self.cfg.user, self.cfg.pwd, key=self.cfg.device_id)
         self.logger.info('Admin user has been added')
@@ -36,6 +49,7 @@ class user_add_test(test_tpl):
     
     def add_30user(self):
         for i in range(30):
+            print(f'-------- Adding User: {i + 3} --------')
             self.add_user(self.gen_username(), self.gen_pwd())
         time.sleep(1)
 
@@ -64,10 +78,9 @@ class user_add_test(test_tpl):
 
 
     def test(self):
-        self.add_admin_user()
-
-        self.add_without_perm_user()
-        self.add_30user()
+        self.add_admin_user() # 1
+        self.add_without_perm_user() # 2
+        self.add_30user() #30 + 2
         self.add_more_than_max()
 
 

@@ -1,13 +1,18 @@
 #!/usr/bin/python3
 
 
-import sys
 import os
 import unittest
 import xmlrunner
 import xml.etree.ElementTree as xml_parser
 
-from config import config_t
+import sys
+path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(path)
+sys.path.append(f'{path}{os.path.sep}src')
+sys.path.append(f'{path}{os.path.sep}src{os.path.sep}uclient')
+
+
 from uclient.fwupd import fwupd_device
 from fwupd import fwupd
 try:
@@ -22,6 +27,7 @@ class fwupd_inband_test(test_tpl):
 
     def setUp(self):
         super().setUp(dtype=fwupd_device)
+        os.system('./fwupd.sh')
         with open('out/fw.fs', 'rb') as fd:
             self.ref = fd.read()
         self.chunks = []

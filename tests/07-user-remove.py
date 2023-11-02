@@ -9,6 +9,11 @@ import time
 import base64
 
 
+path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(path)
+sys.path.append(f'{path}{os.path.sep}src')
+sys.path.append(f'{path}{os.path.sep}src{os.path.sep}uclient')
+
 from config import config_t
 from uclient.userdev import user_device
 

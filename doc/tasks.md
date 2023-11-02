@@ -12,6 +12,7 @@
 		- [x] uploading via mqtt
 		- [x] downloading from http
 		- [x] docs
+		- [ ] pyhlo - updater tool
 	- [x] Users
 		- [x] signing messages
 		- [x] storing users
@@ -24,12 +25,13 @@
 		- [x] time-series db
 		- [x] Storing events
 		- [x] Publishing events
-	- [ ] correct inheritance
+	- [x] correct inheritance
 	- [x] version topic
 	- [x] ping topic test
 	- [x] lifetime and status topic tests
 	- [ ] Error topics tests
 	- [x] hub topic tests
+	- [ ] last-will message
 	- [ ] Server topic
 	- [ ] Documentation
 		- [ ] describe user-server-device application examples and graphs

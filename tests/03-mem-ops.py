@@ -26,6 +26,7 @@ class memops_test(test_tpl):
         self._device.write_mem(32,data)
         self.subscribe_device('read', self.on_resp)
         self.publish_device('read','32;64')
+        self.topic = None
         self.wait_condition(lambda: self.topic is not None, 10)
         self.assertTrue(self.topic == 'read')
         (sz, ret) = self.value.split(';')
@@ -36,7 +37,7 @@ class memops_test(test_tpl):
         data = random.randbytes(64)
         self.subscribe_device('write', self.on_resp)
         self.publish_device('write',f'32;{base64.b64encode(data).decode()}')
-
+        self.topic = None
         self.wait_condition(lambda: self.topic is not None, 10)
         self.assertTrue(self.topic == 'write')
         (addr, sz) = self.value.split(';')

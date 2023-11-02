@@ -23,9 +23,9 @@ def gen_device_id():
 
 device = None
 
-class uart_device(user_device,fwupd_device, event_device ):
+class uart_device(fwupd_device):
     def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
-        super().__init__(serial, dtype, regs, status)
+        super().__init__(serial, dtype, regs, status, bytes.fromhex(config_t().device_id))
 
 
 def main():

@@ -5,7 +5,6 @@
 import os
 import unittest
 import xmlrunner
-import time
 
 
 from test_tpl import test_tpl

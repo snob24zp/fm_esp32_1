@@ -5,7 +5,6 @@
 import os
 import unittest
 import xmlrunner
-import version
 
 
 from test_tpl import test_tpl

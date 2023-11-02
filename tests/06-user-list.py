@@ -7,6 +7,12 @@ import unittest
 import xmlrunner
 import base64
 
+
+path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(path)
+sys.path.append(f'{path}{os.path.sep}src')
+sys.path.append(f'{path}{os.path.sep}src{os.path.sep}uclient')
+
 from config import config_t
 from uclient.userdev import user_device
 try:
@@ -28,8 +34,11 @@ class user_list_test(test_tpl):
 
     def add_31user(self):
         for i in range(31):
-            self.users.append((self.gen_username(), self.gen_pwd()))
-            self.add_user(*self.users[-1])
+            un = self.gen_username()
+            while un in self.users:
+                un = super().gen_username()
+            self.users.append(un)
+            self.add_user(self.users[-1], self.gen_pwd())
 
     def on_list(self, topic, value):
         self.logger.info(f"list response: ({topic}) {value}")
@@ -46,8 +55,10 @@ class user_list_test(test_tpl):
         self.add_31user()
         self.send_list_cmd()
         for user in self._income_users:
+            if len(user) == 0:
+                break
             for _usr in self.users:
-                if user['n'] == _usr[0]:
+                if user['n'] == _usr:
                     self.users.remove(_usr)
                     self.logger.info(f'===> Got: hash: {user["u"]} ; p: {user["p"]}, name: {user["n"]}')
                     break

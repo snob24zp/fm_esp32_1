@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Release {{ release }}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+    <style>
+        body {
+            background: #f0efef;
+        }
+        .button {
+            background-color: #eb332c;
+            border: 0.1rem solid #eb332c;
+        }
+        .button:hover {
+            background-color: #da221b;
+            border: 0.1rem solid #da221b;
+        }
+    </style>
+</head>
+
+<body >
+    <header>
+        <div class="container">
+            <h3 style="margin-bottom: 0; padding-bottom: 0;">Производственная сборка {{ release }}</h3>
+            <p style="margin-bottom: 0; padding-bottom: 0;"><small>Commit: {{ commit }} Время: {{ tm }}</small></p>
+        </div>
+    </header>
+    <hr>
+    <main class="Main">
+        <div class="container">
+            <b>Последние 5 изменений кода (commit)</b>
+            <ul>
+                {% for item in commits %}
+                    <li>{{item[0]}}<br><small>Commit: {{item[1]}} Дата: {{item[2]}}</small></li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="container">
+            <blockquote>
+                <p><b>Документация</b></p>
+            </blockquote>
+            <a class="button" href="html/">Документация кода</a>
+            <a class="button" href="cppcheck/">Статический анализ кода</a>
+        </div>
+        <hr>
+        <div class="container">
+            <blockquote>
+                <p><b>Прошивки</b></p>
+            </blockquote>
+            <a class="button" href="factory-build.zip">Производственная прошивка</a>
+            <a class="button" href="dev_ltc_c3.latest.uebf">Пользовательская прошивка</a>
+            <p> <i> * Производственная прошивка используется для первоначальной записи через программатор. </i></p>
+        </div>
+        <hr>
+        <div class="container">
+            <blockquote>
+                <p><b>Результат тестирования</b></p>
+            </blockquote>
+            <a class="button" href="tests/">Результаты тестов</a>
+            <a class="button" href="serial.log">Лог UART</a>
+        </div>
+        <hr>
+    </main>
+</body>
+
+</html>

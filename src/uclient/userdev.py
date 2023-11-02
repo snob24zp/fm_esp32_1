@@ -88,8 +88,6 @@ class user_device(device_base):
     PERM_F_RES  = 0x80
 
     def __init__(self,  serial: int, dtype=device_base.DEVICE_TYPE, regs={}, status=0, device_id: bytes = None):
-        
-            
         super().__init__(serial, dtype, regs, status)
         self._device_id = bytes.fromhex(config_t().device_id) if device_id is None else device_id
         if not user_device.MEM_DIR in os.listdir('.'):
@@ -176,6 +174,8 @@ class user_device(device_base):
             acls = struct.unpack(f'>{(len(msg) - sz)//2}h', msg[sz:])
             self.__user_list.append(user(uid, perm, name, user.save_acl(acls)))
             user_device.save_db(self.serial, self.__user_list)
+
+            self.info(f'User created. User count: {len(self.__user_list)}')
             self.pub_dev(topic, aes.encrypt('"OK"'.encode(), self._device_id))
             return True
         return False
