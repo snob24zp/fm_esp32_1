@@ -17,17 +17,17 @@ rm -rf $CWD
 ls -l artifacts
 mkdir -p $CWD
 mkdir -p "$CWD/html"
-cp artifacts/code-check.log/code-check.log "$CWD/code-check.log"
+cp artifacts/lintcheck/code-check.log "$CWD/code-check.log"
 # cp artifacts/factory-build.zip/factory-build.zip "$CWD/factory-build.zip"
 cp artifacts/$UEBF_FW/$UEBF_FW "$CWD/$UEBF_FW"
 ./ci/release-page/gen.py "R$(date +%y%m%d)" "$(git rev-parse HEAD)" $(git rev-parse --abbrev-ref HEAD) > "$CWD/index.html"
 
 create_releasefile
 
-for f in ./artifacts/tests/*.xml
+for f in ./artifacts/tests-summary/*.xml
 do
          echo "Converting $f"
-         python3 -m junit2html $f
+         junit2html $f
 done
 mkdir -p "$CWD/tests"
 cp -R ./artifacts/tests-summary/*.html  "$CWD/tests"
