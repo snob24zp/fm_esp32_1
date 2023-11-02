@@ -3,7 +3,7 @@
 import sys
 import json
 import base64
-import json
+
 from log import log
 
 try:
