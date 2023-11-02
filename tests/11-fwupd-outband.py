@@ -23,7 +23,7 @@ except ImportError:
 
 
 class fwupd_outband_test(test_tpl):
-    FW_URL = "https://release.dlab.pw/AR.FW.latest.uebf"
+    FW_URL = "https://release.dlab.pw/esp32-mpy-uclient/AR.FW.latest.uebf"
 
     def setUp(self):
         super().setUp(dtype=fwupd_device)

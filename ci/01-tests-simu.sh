@@ -7,7 +7,8 @@ mkdir -p ./data
 mkdir -p ./out
 mkdir -p ./out/tests
 
-cp -v out/AR.FW.latest.uebf /var/www/release/AR.FW.latest.uebf
+mkdir -p /var/www/release/esp32-mpy-uclient
+cp -v out/AR.FW.latest.uebf /var/www/release/esp32-mpy-uclient/AR.FW.latest.uebf
 
 export ret=0
 for f in $TEST_DIR
