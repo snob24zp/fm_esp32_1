@@ -10,7 +10,7 @@ mkdir -p ./out/tests
 mkdir -p /var/www/release/esp32-mpy-uclient
 ls -la out
 ls -la /var/www/release
-cp -v out/AR.FW.latest.uebf /var/www/release/esp32-mpy-uclient/AR.FW.latest.uebf
+cp -v out/AR.FW.latest.uebf /var/www/release/esp32-mpy-uclient/
 
 export ret=0
 for f in $TEST_DIR
