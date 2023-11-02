@@ -90,6 +90,7 @@ sz=$(du -sb $OUT_DIR | cut -f 1)
 
 echo "Creating littleFS filesystem image (sz: $sz)"
 
+mkdir -p out
 rm -f $FS_FILE
 ./tools/mklittlefs -d 5 -c $OUT_DIR -b 512 -s $(($sz + 8196)) $FS_FILE
 rm -rf $OUT_DIR

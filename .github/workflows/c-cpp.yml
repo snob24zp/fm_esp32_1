@@ -17,7 +17,7 @@ jobs:
     - run: ./ci/00-code-check.sh
     - uses: actions/upload-artifact@v2
       with:
-        name: 'cppcheck'
+        name: 'lintcheck'
         path: out/code-check.log
   Build:
     name: 'Сборка'
