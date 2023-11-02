@@ -3,6 +3,7 @@ TEST_DIR="./tests/[0-9]*"
 
 python3 -m pip install --break-system-packages -r ./tests/requirements.txt
 
+mkdir -p ./data
 mkdir -p ./out
 mkdir -p ./out/tests
 
