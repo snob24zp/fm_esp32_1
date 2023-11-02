@@ -40,6 +40,10 @@ jobs:
     runs-on: self-hosted
     needs: Build
     steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: AR.FW.latest.uebf
+        path: out
     - run: ./ci/01-tests-simu.sh
     - uses: actions/upload-artifact@v2
       with:
