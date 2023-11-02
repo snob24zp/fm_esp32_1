@@ -35,8 +35,8 @@ class reg_value_exchange_test(test_tpl):
         self.value = random.randint(0, 65535)
         self.logger.info(f'------- 2. Set register 8 to value {self.value} from device side')
         self.subscribe_device('8', self.on_chg_reg)
-        self._device.set_reg(8, self.value)
         self.rett = None
+        self._device.set_reg(8, self.value)
         self.wait_condition(lambda: self.rett is not None, 10)
         self.assertTrue(self.rett == '8')
         self.assertTrue(self.value == int(self.retv))
@@ -52,8 +52,8 @@ class reg_value_exchange_test(test_tpl):
         self.value = {'rnd-a': random.randint(0, 65535), 'rnd-b': random.randint(0, 65535) }
         self.logger.info(f'------- 4. Set register 9 to value {self.value} from device side')
         self.subscribe_device('9', self.on_chg_reg)
-        self._device.set_reg(9, self.value)
         self.rett = None
+        self._device.set_reg(9, self.value)
         self.wait_condition(lambda: self.rett is not None, 10)
         self.assertTrue(self.rett == '9')
         self.assertTrue(self.value == self.retv)
