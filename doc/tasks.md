@@ -32,12 +32,13 @@
 	- [x] lifetime and status topic tests
 	- [ ] Error topics tests
 	- [x] hub topic tests
-	- [ ] last-will message
+	- [x] last-will message
 	- [ ] Server topic
 	- [ ] Documentation
 		- [ ] describe user-server-device application examples and graphs
 		- [x] describe protocol briefly
 	- [ ] CI/CD
+		- [x] generally run CI/CD
 		- [ ] release page
 		- [ ] windows pyinstaller
 		- [ ] generate sphinx documentation
@@ -57,5 +58,11 @@
 		- [ ] Batch transfers
 	- [ ] CI/CD ?
 - [ ] UART bridge example app
-- [ ] build executable file for windows
+	- [ ] windows
+	- [ ] linux
+	- [ ] esp32 (repl?)
 - [ ] attach modem
+	- [x] via usb-tty
+	- [ ] to esp32
+	- [ ] gsm07.10
+- [ ] Bluetooth module

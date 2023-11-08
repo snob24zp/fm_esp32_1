@@ -50,3 +50,9 @@ class transport():
         По отключению от брокера
         '''
         pass
+
+    def set_lastwill(self, topic: str, data: bytes):
+        '''
+        Set last will message (message which send broker on QOS interval runs out)
+        '''
+        pass

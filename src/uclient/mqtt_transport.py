@@ -10,7 +10,8 @@ class mqtt_transport(transport, log):
     def __init__(self, name: str) -> None:
         transport.__init__(self, name)
         log.__init__(self, 'MQTT')
-
+        
+        self._lw = None
         self.client = None
         self.host = 'x.ks.ua'
         self.port = 1883
@@ -22,6 +23,9 @@ class mqtt_transport(transport, log):
         self.port = port
 
         self.client = MQTTClient(self.name, host, port, keepalive=60)
+        if self._lw is not None:
+            self.client.set_last_will(self._lw[0], self._lw[1], qos=1)
+
         self.client.set_callback(self.__on_message)
         self.client.connect()
         time.sleep(1)
@@ -67,6 +71,10 @@ class mqtt_transport(transport, log):
     @log.dbg_wr
     def on_disconnect(self, callback: object) -> None:
         self.__on_disconnect_cb = callback
+
+    @log.dbg_wr
+    def set_lastwill(self, topic: str, data: str):
+        self._lw = [topic, data]
 
     def __on_connect(self):
         if callable(self.__on_connect_cb):

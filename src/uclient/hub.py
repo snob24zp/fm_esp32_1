@@ -66,6 +66,7 @@ class HUB(log):
 
         self.events_disable = False
         self.client = mqtt(token.replace(':', ''))
+        self.client.set_lastwill(f'<{self.token}/status', '-1')
         self.client.on_connect(self.__on_connect)
         self.client.on_disconnect(self.__on_disconnect)
         self.time = None
@@ -354,6 +355,8 @@ class HUB(log):
         """
         Завершает работу
         """
+        self.state = self.REG_BLOCKED
+        self.lifetime = 65535
         self.client.disconnect()
 
     def connect(self):
@@ -381,7 +384,7 @@ def test():
             return config_t().mac
 
     dev = device_base(12345)
-    token = unique_id().hex(":")
+    token = bytes.fromhex(unique_id()).hex(':')
 
     # sha256("ap0\0y78bug57\0")
     cl = HUB("x.ks.ua:1883", token, [dev])
