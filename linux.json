@@ -6,5 +6,10 @@
     "ble" : {
          "import": "hw.linux.ble",
          "type": "BLEUART"
+    },
+    "uplink": {
+        "import": "hw.linux.pty_link",
+        "type": "pty_link",
+        "pty":  "/tmp/uart"
     }
 }

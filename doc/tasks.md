@@ -59,7 +59,7 @@
 	- [ ] CI/CD ?
 - [ ] UART bridge example app
 	- [ ] windows
-	- [ ] linux
+	- [x] linux
 	- [ ] esp32 (repl?)
 - [ ] attach modem
 	- [x] via usb-tty

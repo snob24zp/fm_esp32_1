@@ -5,6 +5,7 @@ from config import config_t
 import net.webapp as webapp
 
 import sys
+import json
 from uclient.device import device_base
 if sys.version.count('MicroPython') > 0:
     import ntptime
@@ -26,6 +27,19 @@ device = None
 class uart_device(fwupd_device):
     def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
         super().__init__(serial, dtype, regs, status, bytes.fromhex(config_t().device_id))
+        board.uplink.on_rx(self.on_rx_uart)
+
+    def on_rx_uart(self, _, value: bytes):
+        self.set_reg(3, value.decode())
+    
+    def on_change_reg(self, topic: str, msg: object):
+        if self.isnumeric(topic) and int(topic) == 3:
+            board.uplink.tx(json.dumps(msg).encode())
+        return super().on_change_reg(topic, msg)
+
+    def step(self):
+        board.uplink()
+        return super().step()
 
 
 def main():

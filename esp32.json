@@ -3,8 +3,33 @@
         "import": "hw.esp32.wlan",
         "type": "WLAN"
     }, 
-    // "ble" : {
-    //      "import": "hw.esp32.ble",
-    //      "type": "BLEUART"
-    // }
+    "ble" : {
+          "import": "hw.esp32.ble",
+          "type": "BLEUART"
+    },
+    "uplink": {
+        "import": "hw.esp32.uart",
+        "type": "uart_link",
+        "uart": {
+            "import": "machine",
+            "type": "UART",
+            "bits": 8,
+            "baudrate": 115200,
+            "id": 1,
+            "rxbuf": 64,
+            "txbuf": 64,
+            "timeout_char": 1,
+            "timeout": 1,
+            "tx": {
+                "import": "machine",
+                "type": "Pin",
+                "id": 1
+            },
+            "rx": {
+                "import": "machine",
+                "type": "Pin",
+                "id": 3
+            }
+        }
+    }
 }
