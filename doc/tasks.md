@@ -61,6 +61,7 @@
 	- [ ] windows
 	- [x] linux
 	- [ ] esp32 (repl?)
+	- [ ] question about data-formatting 
 - [ ] attach modem
 	- [x] via usb-tty
 	- [ ] to esp32
