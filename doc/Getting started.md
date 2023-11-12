@@ -44,3 +44,7 @@ $python3 src/main.py
 ```
 
 Device web page will be available at port 3000 (http://localhost:3000)
+
+## 5. UART Bridge application
+
+@see [[Example app - UART bridge]]

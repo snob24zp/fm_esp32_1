@@ -37,25 +37,40 @@ _ADV_APPEARANCE_GENERIC_COMPUTER = const(128)
 
 
 class BLEUART(log):
-    def __init__(self, ble=None, name="AR-UART", rxbuf=128):
+    def __init__(self, name="AR-UART", rxbuf=128):
         super().__init__(f'BLE-{name}')
-        self._ble = bluetooth.BLE() if ble is None else ble
+        self.name = name
+        self.rxbuf = rxbuf
+        self._ble = None
+
+    def __enter__(self):
+        self.open()
+        return self
+
+    def __exit__(self):
+        self.close()
+
+    def open(self):
+        self._ble = bluetooth.BLE()
         self._ble.active(True)
         self._ble.irq(self._irq)
         ((self._tx_handle, self._rx_handle),) = self._ble.gatts_register_services((_UART_SERVICE,))
         # Increase the size of the rx buffer and enable append mode.
-        self._ble.gatts_set_buffer(self._rx_handle, rxbuf, True)
+        self._ble.gatts_set_buffer(self._rx_handle, self.rxbuf, True)
         self._connections = set()
         self._rx_buffer = bytearray()
         self._handler = None
         # Optionally add services=[_UART_UUID], but this is likely to make the payload too large.
-        self._payload = advertising_payload(name=name, appearance=_ADV_APPEARANCE_GENERIC_COMPUTER)
+        self._payload = advertising_payload(name=self.name, appearance=_ADV_APPEARANCE_GENERIC_COMPUTER)
         self._advertise()
 
     def irq(self, handler):
         self._handler = handler
 
     def _irq(self, event, data):
+        if self._ble is None:
+            return
+
         # Track connections so we can send notifications.
         if event == _IRQ_CENTRAL_CONNECT:
             conn_handle, _, _ = data
@@ -86,15 +101,23 @@ class BLEUART(log):
         return result
 
     def write(self, data):
+        if self._ble is None:
+            return
+
         self.info(f'TX: {data}')
         for conn_handle in self._connections:
             self._ble.gatts_notify(conn_handle, self._tx_handle, data)
 
     def close(self):
+        if self._ble is None:
+            return
+        
         self.info('BLE Closed')
         for conn_handle in self._connections:
             self._ble.gap_disconnect(conn_handle)
         self._connections.clear()
+        self._ble.active(False)
+        self._ble = None
 
     def _advertise(self, interval_us=500000):
         self._ble.gap_advertise(interval_us, adv_data=self._payload)

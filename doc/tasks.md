@@ -60,10 +60,11 @@
 - [ ] UART bridge example app
 	- [ ] windows
 	- [x] linux
-	- [ ] esp32 (repl?)
+	- [x] esp32 (repl?)
 	- [ ] question about data-formatting 
 - [ ] attach modem
 	- [x] via usb-tty
 	- [ ] to esp32
 	- [ ] gsm07.10
+	- [ ] sending sms
 - [ ] Bluetooth module

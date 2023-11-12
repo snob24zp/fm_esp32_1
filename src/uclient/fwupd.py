@@ -103,6 +103,6 @@ class fwupd_device(event_device, fwupd):
                 return
             
             self.dl_run = 1
-            start_thread(self.dl_thr, (topic, msg))
+            start_thread(self.dl_thr, (topic, msg), 10240)
 
         return super().hnd_msg(topic, msg)

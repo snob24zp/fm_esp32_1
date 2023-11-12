@@ -17,10 +17,16 @@ $ python3 -m serial.tools.miniterm /tmp/uart
 "hello mqtt"
 ```
 
-## Micropython (ESP32)
+## Micropython (ESP32-C3)
 
----
+Device based on ESP32 will use UART0 as default uart device, RX and TX pins will be mapped to 20 and 21 pin respectively. This configuration could be changed in `esp32.json` board definition file. UART is using 115200 8N1 configuration. 
+
+REPL, in the same time, will be available at internal USB Serial port (details: https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-guides/usb-serial-jtag-console.html)
+
+Also, to use such configuration, Micropython build set MICROPY_HW_ENABLE_UART_REPL to zero. Check `ports/esp32/boards/ESP32_GENERIC_C3/mpconfigboard.h`
+
+Already built Micropython release with these changes could be found in `other/esp32-c3_wo_repl` folder, and could be 'burned' by `deploy.sh` script (needed esptool.py)
 
 ## Windows
 
----
+

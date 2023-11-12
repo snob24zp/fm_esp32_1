@@ -68,9 +68,9 @@ def main():
                     nonlocal hub
                     while hub.is_connected:
                         hub.step()
-                start_thread(lambda: dev_step_thread(),())
+                start_thread(lambda: dev_step_thread(),(), 16384)
 
-            start_thread(lambda: webapp.init().run(port=80),())
+            start_thread(lambda: webapp.init().run(port=80),(),8192)
 
         if hasattr(board, "ble"):
             def on_ble_rx(rx):
@@ -90,8 +90,8 @@ def main():
             while hub.is_connected:
                 hub.step()
 
-        start_thread(lambda: webapp.init().run(port=3000),())
-        start_thread(lambda: dev_step_thread(),())
+        start_thread(lambda: webapp.init().run(port=3000),(), 128 * 1024)
+        start_thread(lambda: dev_step_thread(),(), 128 * 1024)
         code.interact(banner, local=locals())
 
 
