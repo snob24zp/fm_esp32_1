@@ -19,7 +19,7 @@ class modem(log):
             ("AT+CFUN=1\r\n", "OK"),
             ("AT+CEREG?\r\n", "OK"),
             ('AT+CGDCONT=1,"IP","\T","",0,0\r\n', "OK"),
-            ('ATD*99#\r\n', 'OK'),
+            ('ATD*99#\r\n', 'CONNECT'),
         )
         self.uart_link.on_rx(self.__rx)
 
@@ -32,14 +32,14 @@ class modem(log):
         self.info(f'> {data[:-2]}')
         self.uart_link.tx(data.encode())
 
-    def __waitfor(self, answ, timeout = 5000):
+    def __waitfor(self, answ, timeout = 10000):
         _start = time.ticks_ms()
         while time.ticks_ms() < (_start + timeout) and self.__rxmsg.count(answ) == 0:
             self.uart_link.poll()
         
-        if time.ticks_ms() > (_start + timeout):
+        if time.ticks_ms() > (_start + timeout) or self.__rxmsg.count(answ) == 0:
             return False
-        
+
         self.__rxmsg = ''
         return True
 
@@ -58,7 +58,7 @@ class modem(log):
         if self.__waitfor("*ATREADY: 1", 20000):
             self.info('AT-Ready found')
 
-        if self.__waitfor("PB DONE", 10000):
+        if self.__waitfor("PB DONE"):
             self.info('Modem ready')
 
         time.sleep(1)

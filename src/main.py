@@ -58,7 +58,8 @@ def main():
             net = board.modem
             if net.init():
                 time.sleep(5)
-                while not net.is_connected():
+                _start = time.time()
+                while not net.is_connected() and _start < (time.time() + 30):
                     print('waiting for network...')
                     time.sleep(1)
                 try:
@@ -71,7 +72,8 @@ def main():
             net = board.network
             net.init()
             time.sleep(5)
-            while not net.is_connected():
+            _start = time.time()
+            while not net.is_connected() and _start < (time.time() + 30):
                 print('waiting for network...')
                 time.sleep(1)
             
