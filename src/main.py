@@ -35,6 +35,11 @@ class uart_device(fwupd_device):
     def on_change_reg(self, topic: str, msg: object):
         if self.isnumeric(topic) and int(topic) == 3:
             board.uplink.tx(json.dumps(msg).encode())
+        if self.isnumeric(topic) and int(topic) == 4:
+            if sys.version.count('MicroPython') > 0 and isinstance(msg, int):
+                board.led[0] = ((msg >> 16) & 0xff, (msg >> 8) & 0xff, msg & 0xff)
+                board.led.write()
+
         return super().on_change_reg(topic, msg)
 
     def step(self):
@@ -47,9 +52,24 @@ def main():
     cfg = config_t()
     print(f'Current config: {cfg.json()}')
     if sys.version.count('MicroPython') > 0:
-        if hasattr(board, "network"):
+        modem_init = False
+        wlan_init = False
+        if hasattr(board, "modem"):
+            net = board.modem
+            if net.init():
+                time.sleep(5)
+                while not net.is_connected():
+                    print('waiting for network...')
+                    time.sleep(1)
+                try:
+                    ntptime.settime()
+                except:
+                    print('Could not get update from NTP server')
+                modem_init = net.is_connected()
+            
+        if  hasattr(board, "network") and not modem_init:
             net = board.network
-
+            net.init()
             time.sleep(5)
             while not net.is_connected():
                 print('waiting for network...')
@@ -60,24 +80,28 @@ def main():
                     ntptime.settime()
                 except:
                     print('Could not get update from NTP server')
-                    
-                device = uart_device(cfg.serial)
-                hub = HUB(cfg.server, cfg.token, [device])
-                hub.connect()
-                def dev_step_thread():
-                    nonlocal hub
-                    while hub.is_connected:
-                        hub.step()
-                start_thread(lambda: dev_step_thread(),(), 16384)
+            wlan_init = net.is_connected()
 
-            start_thread(lambda: webapp.init().run(port=80),(),8192)
-
-        if hasattr(board, "ble"):
+        if hasattr(board, "ble") and not wlan_init:
             def on_ble_rx(rx):
                 pass
             
             ble = board.ble
             ble.irq(on_ble_rx)
+
+        if wlan_init:
+            start_thread(lambda: webapp.init().run(port=80),(),8192)
+
+        if wlan_init or modem_init:
+            device = uart_device(cfg.serial)
+            hub = HUB(cfg.server, cfg.token, [device])
+            hub.connect()
+            def dev_step_thread():
+                nonlocal hub
+                while hub.is_connected:
+                    hub.step()
+            start_thread(lambda: dev_step_thread(),(), 16384)
+
 
     else:
         banner = '''Set register from shell: device.set_reg(num, value)

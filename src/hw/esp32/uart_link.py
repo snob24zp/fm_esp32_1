@@ -16,8 +16,6 @@ class uart_link(link):
     def poll(self):
         ret_sz = self.__uart.any()
         if ret_sz > self._threshold and ret_sz < 256 and self.rx_cb is not None:
-            print('-- recv: ', ret_sz)
             _ret = self.__uart.read(ret_sz)
-            print('-- recv#2: ', _ret)
             if _ret is not None:
                 self.rx_cb(self, _ret)

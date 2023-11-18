@@ -64,7 +64,10 @@
 	- [ ] question about data-formatting 
 - [ ] attach modem
 	- [x] via usb-tty
-	- [ ] to esp32
+	- [x] to esp32
 	- [ ] gsm07.10
 	- [ ] sending sms
+	- [ ] Inherit modem PPP from 'net_if' class
+- [ ] Inherit WLAN from 'net_if' class
 - [ ] Bluetooth module
+	- [ ] inherit BLE from link class

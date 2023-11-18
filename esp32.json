@@ -2,7 +2,7 @@
     "network": {
         "import": "hw.esp32.wlan",
         "type": "WLAN"
-    }, 
+    },
     // "ble" : {
     //       "import": "hw.esp32.ble",
     //       "type": "BLEUART"
@@ -25,6 +25,46 @@
                 "type": "Pin",
                 "id": 20
             }
+        }
+    },
+    "led": {
+        "import": "neopixel",
+        "type": "NeoPixel",
+        "pin": {
+            "import": "machine",
+            "type": "Pin",
+            "id": 8
+        },
+        "n": 1
+    },
+    "modem": {
+        "import": "hw.esp32.ppp",
+        "type": "modem",
+        "uart_link": {
+            "import": "hw.esp32.uart_link",
+            "type": "uart_link",
+            "uart": {
+                "import": "machine",
+                "type": "UART",
+                "baudrate": 115200,
+                "id": 1,
+                "tx": {
+                    "import": "machine",
+                    "type": "Pin",
+                    "id": 1
+                },
+                "rx": {
+                    "import": "machine",
+                    "type": "Pin",
+                    "id": 0
+                }
+            }
+        },
+        "pwr_pin": {
+            "import": "machine",
+            "type": "Pin",
+            "id": 2,
+            "mode": 3
         }
     }
 }
