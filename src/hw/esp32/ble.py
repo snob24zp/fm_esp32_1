@@ -47,7 +47,7 @@ class BLEUART(log):
         self.open()
         return self
 
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
     def open(self):
@@ -59,13 +59,14 @@ class BLEUART(log):
         self._ble.gatts_set_buffer(self._rx_handle, self.rxbuf, True)
         self._connections = set()
         self._rx_buffer = bytearray()
-        self._handler = None
         # Optionally add services=[_UART_UUID], but this is likely to make the payload too large.
         self._payload = advertising_payload(name=self.name, appearance=_ADV_APPEARANCE_GENERIC_COMPUTER)
         self._advertise()
+        self.info("BLE Opened, and ready")
 
     def irq(self, handler):
-        self._handler = handler
+        if callable(handler):
+            self._handler = handler
 
     def _irq(self, event, data):
         if self._ble is None:
@@ -87,7 +88,7 @@ class BLEUART(log):
                 self._rx_buffer += self._ble.gatts_read(self._rx_handle)
                 if self._handler:
                     rx = self.read()
-                    self.info(f'RX: {rx}')
+                    self.dbg(f'RX: {rx}')
                     self._handler(rx)
 
     def any(self):
@@ -104,14 +105,14 @@ class BLEUART(log):
         if self._ble is None:
             return
 
-        self.info(f'TX: {data}')
+        self.dbg(f'TX: {data}')
         for conn_handle in self._connections:
             self._ble.gatts_notify(conn_handle, self._tx_handle, data)
 
     def close(self):
         if self._ble is None:
             return
-        
+
         self.info('BLE Closed')
         for conn_handle in self._connections:
             self._ble.gap_disconnect(conn_handle)

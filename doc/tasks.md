@@ -61,13 +61,15 @@
 	- [ ] windows
 	- [x] linux
 	- [x] esp32 (repl?)
-	- [ ] question about data-formatting 
+	- [x] question about data-formatting 
+		- [x] all data will be base64 formatted, and ended with EOF (0), if found \x01  then this is SMS command to modem
 - [ ] attach modem
 	- [x] via usb-tty
 	- [x] to esp32
 	- [ ] gsm07.10
-	- [ ] sending sms
-	- [ ] Inherit modem PPP from 'net_if' class
-- [ ] Inherit WLAN from 'net_if' class
-- [ ] Bluetooth module
-	- [ ] inherit BLE from link class
+	- [x] sending sms
+	- [ ] receiving sms (low prio)
+	- [x] Inherit modem PPP from 'net_if' class
+	- [ ] handling disconnections 
+- [x] Inherit WLAN from 'net_if' class
+- [x] Bluetooth module

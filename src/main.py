@@ -9,14 +9,13 @@ import json
 from uclient.device import device_base
 if sys.version.count('MicroPython') > 0:
     import ntptime
+    import machine
 else:
     import code
 
-from uclient.evtdev import event_device
-from uclient.userdev import user_device
+
 from uclient.fwupd import fwupd_device
 from uclient.hub import HUB
-from fwupd import fwupd
 from threadmpy import start_thread
 
 def gen_device_id():
@@ -28,22 +27,71 @@ class uart_device(fwupd_device):
     def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
         super().__init__(serial, dtype, regs, status, bytes.fromhex(config_t().device_id))
         board.uplink.on_rx(self.on_rx_uart)
+        self.ble = None
+        self.qble = []
+        self.quart = []
+        self.qmqtt = []
+
+    def set_ble(self, ble):
+        if ble is None:
+            return
+
+        self.ble = ble
+        self.ble.irq(lambda d: self.qble.append(d))
+        self.ble.open()
 
     def on_rx_uart(self, _, value: bytes):
-        self.set_reg(3, value.decode())
-    
+        self.quart.append(value)
+
     def on_change_reg(self, topic: str, msg: object):
         if self.isnumeric(topic) and int(topic) == 3:
-            board.uplink.tx(json.dumps(msg).encode())
+            self.qmqtt.append(json.dumps(msg).encode())
         if self.isnumeric(topic) and int(topic) == 4:
             if sys.version.count('MicroPython') > 0 and isinstance(msg, int):
                 board.led[0] = ((msg >> 16) & 0xff, (msg >> 8) & 0xff, msg & 0xff)
                 board.led.write()
+        if self.isnumeric(topic) and int(topic) == 5:
+            if sys.version.count('MicroPython') > 0 and isinstance(msg, dict):
+                self.info(f"try to send sms: {msg}")
+                try:
+                    board.modem.sms(msg['to'], msg['msg'])
+                except Exception as ex:
+                    print(ex)
+
+        if self.isnumeric(topic) and int(topic) == 6:
+            if sys.version.count('MicroPython') > 0 and isinstance(msg, int):
+                cfg = config_t()
+                cfg.force_wlan = msg > 0
+                cfg.save()
+                machine.reset()
 
         return super().on_change_reg(topic, msg)
 
     def step(self):
         board.uplink()
+        if len(self.qble) > 0:
+            for _q in self.qble:
+                board.uplink.tx(_q)
+                self.set_reg(3, _q.decode())
+            del self.qble
+            self.qble = []
+        
+        if len(self.quart) > 0:
+            for _q in self.quart:
+                if self.ble is not None:
+                    self.ble.write(_q)
+                self.set_reg(3, _q.decode())
+            del self.quart
+            self.quart = []
+        
+        if len(self.qmqtt) > 0:
+            for _q in self.qmqtt:
+                if self.ble is not None:
+                    self.ble.write(_q)
+                board.uplink.tx(_q)
+            del self.qmqtt
+            self.qmqtt = []
+
         return super().step()
 
 
@@ -54,7 +102,7 @@ def main():
     if sys.version.count('MicroPython') > 0:
         modem_init = False
         wlan_init = False
-        if hasattr(board, "modem"):
+        if hasattr(board, "modem") and not cfg.force_wlan:
             net = board.modem
             if net.init():
                 time.sleep(5)
@@ -67,6 +115,9 @@ def main():
                 except:
                     print('Could not get update from NTP server')
                 modem_init = net.is_connected()
+        
+        if hasattr(board, "modem") and not cfg.force_wlan:
+            board.modem.__
             
         if  hasattr(board, "network") and not modem_init:
             net = board.network
@@ -84,29 +135,28 @@ def main():
                     print('Could not get update from NTP server')
             wlan_init = net.is_connected()
 
-        if hasattr(board, "ble") and not wlan_init:
-            def on_ble_rx(rx):
-                pass
-            
-            ble = board.ble
-            ble.irq(on_ble_rx)
 
         if wlan_init:
             start_thread(lambda: webapp.init().run(port=80),(),8192)
 
         if wlan_init or modem_init:
             device = uart_device(cfg.serial)
+            if hasattr(board, "ble") and not wlan_init:
+                device.set_ble(board.ble)
+
             hub = HUB(cfg.server, cfg.token, [device])
             hub.connect()
             def dev_step_thread():
                 nonlocal hub
                 while hub.is_connected:
                     hub.step()
-            start_thread(lambda: dev_step_thread(),(), 16384)
 
+            dev_step_thread()
 
     else:
         banner = '''Set register from shell: device.set_reg(num, value)
+
+Connect to the Serial terminal at /tmp/uart
 '''
         device = uart_device(cfg.serial)
         hub = HUB(cfg.server, cfg.token, [device])

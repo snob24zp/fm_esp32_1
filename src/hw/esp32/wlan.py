@@ -2,12 +2,13 @@ import network
 from config import config_t
 import utime
 from machine import reset
-from log import log
+from hw.net_if import net_if
 
 
-class WLAN(log):
+class WLAN(net_if):
     def __init__(self) -> None:
-        super().__init__('WLAN')
+        super().__init__()
+        self.log_prefix = 'WIFI'
         self._cfg = config_t()
         self._pre_time = 0
         self._scan = None

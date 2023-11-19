@@ -1,9 +1,9 @@
-import base64
-import disk
 import os
 import struct
 import time
 import sys
+import base64
+import disk
 
 from uclient import aes 
 from log import log
