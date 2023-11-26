@@ -1,6 +1,7 @@
 - [x] WEB-APP
 - [x] MQTT transport
-	- [ ] mqtt-ssl test
+	- [x] mqtt-ssl test
+	- [x] username/password in mqtt
 - [ ] UCLIENT
 	- [x] Registration
 	- [x] Publishing registers
@@ -63,6 +64,7 @@
 	- [x] esp32 (repl?)
 	- [x] question about data-formatting 
 		- [x] all data will be base64 formatted, and ended with EOF (0), if found \x01  then this is SMS command to modem
+	- [x] Describe somewhere data format and additional /4 /5 /6 registers
 - [ ] attach modem
 	- [x] via usb-tty
 	- [x] to esp32
@@ -71,5 +73,6 @@
 	- [ ] receiving sms (low prio)
 	- [x] Inherit modem PPP from 'net_if' class
 	- [ ] handling disconnections 
+	- [ ] sending sms from uart/ble side
 - [x] Inherit WLAN from 'net_if' class
 - [x] Bluetooth module

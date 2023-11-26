@@ -7,6 +7,7 @@ from uclient.transport import transport
 
 
 class mqtt_transport(transport, log):
+    '''MQTT Transport layer, which uses default micropython mqtt client'''
     def __init__(self, name: str) -> None:
         transport.__init__(self, name)
         log.__init__(self, 'MQTT')
@@ -18,11 +19,18 @@ class mqtt_transport(transport, log):
         self.__subscribers = {}
     
     @log.dbg_wr
-    def connect(self, host: str, port: int = 1883) -> None:
+    def connect(self, host: str, port: int = 1883, user = None, password = None, use_ssl = False) -> None:
+        '''Connect to the broker
+        :param host: Broker host
+        :param port: Broker Port, by default 1883
+        :param user: MQTT Username
+        :param password: MQTT Password
+        '''
         self.host = host
         self.port = port
 
-        self.client = MQTTClient(self.name, host, port, keepalive=60)
+        self.client = MQTTClient(self.name, host, port, 
+                                    keepalive=60, user=user, password=password, ssl=use_ssl)
         if self._lw is not None:
             self.client.set_last_will(self._lw[0], self._lw[1], qos=1)
 
@@ -39,11 +47,13 @@ class mqtt_transport(transport, log):
 
     @log.dbg_wr
     def publish(self, topic: str, value: bytes, qos: int = 0) -> None:
+        '''Publish message'''
         if self.client is not None:
             self.client.publish(topic, msg=str(value), qos=qos)
 
     @log.dbg_wr
     def subscribe(self, topic: str, callback: object) -> None:
+        '''Subscribe to topic'''
         if callback is not None and callable(callback):
             self.__subscribers[topic] = callback
             if self.client is not None:
@@ -51,6 +61,7 @@ class mqtt_transport(transport, log):
 
     @log.dbg_wr
     def unsubscribe(self, topic: str) -> None:
+        '''Unsubscribe from topic'''
         if topic in self.__subscribers.keys():
             #if self.client is not None:
             #    self.client.unsubscribe(topic)
@@ -58,6 +69,7 @@ class mqtt_transport(transport, log):
 
     @log.dbg_wr
     def disconnect(self) -> None:
+        '''Disconnect from server'''
         if self.client is not None:
             self.__subscribers = {}
             #    self.client.unsubscribe(t)
@@ -66,14 +78,17 @@ class mqtt_transport(transport, log):
 
     @log.dbg_wr
     def on_connect(self, callback: object) -> None:
+        '''Set callback which calls on connect'''
         self.__on_connect_cb = callback
 
     @log.dbg_wr
     def on_disconnect(self, callback: object) -> None:
+        '''Set callback which calls on disconnect'''
         self.__on_disconnect_cb = callback
 
     @log.dbg_wr
     def set_lastwill(self, topic: str, data: str):
+        '''Set last-will message'''
         self._lw = [topic, data]
 
     def __on_connect(self):
@@ -113,6 +128,7 @@ class mqtt_transport(transport, log):
                 _int_reconnect *= 2
 
     def step(self):
+        '''Make a step (ie maintenance method)'''
         try:
             if self.client is not None:
                 self.client.check_msg()

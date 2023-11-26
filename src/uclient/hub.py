@@ -32,7 +32,7 @@ class HUB(log):
 
     VERSION = STATIC_VERSION     # Версия эмулятора
 
-    def __init__(self, server, token, devices):
+    def __init__(self, server, token, devices, username=None, password=None):
         '''
         Класс клиента
         '''
@@ -63,7 +63,8 @@ class HUB(log):
         self._on_reg_upd = None
 
         self._old_state = None
-
+        self.username = username
+        self.password = password
         self.events_disable = False
         self.client = mqtt(token.replace(':', ''))
         self.client.set_lastwill(f'<{self.token}/status', '-1')
@@ -363,15 +364,24 @@ class HUB(log):
         """
         Подключается к брокеру
         """
+        use_ssl = False
+        port = 1883
         if self.server.startswith("mqtt://"):
             self.server = self.server[7:]
+        elif self.server.startswith("mqtts://"):
+            self.server = self.server[8:]
+            port = 8883
+            use_ssl=True
+        else:
+            self.warn("Try to connect without uri-schema")
 
         h = self.server.split(':')
         if len(h) == 1:
-            self.client.connect(h[0])
+            self.client.connect(h[0], port=port, 
+                                user=self.username, password=self.password, use_ssl=use_ssl)
         elif len(h) == 2:
-            self.client.connect(h[0], int(h[1]))
-
+            self.client.connect(h[0], port=int(h[1]), 
+                                user=self.username, password=self.password, use_ssl=use_ssl)
 
 
 def test():

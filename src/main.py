@@ -1,6 +1,5 @@
 import board
 import time
-import hashlib
 from config import config_t
 import net.webapp as webapp
 
@@ -17,9 +16,6 @@ else:
 from uclient.fwupd import fwupd_device
 from uclient.hub import HUB
 from threadmpy import start_thread
-
-def gen_device_id():
-    return hashlib.sha256(b'DUT').digest()
 
 device = None
 
@@ -75,7 +71,7 @@ class uart_device(fwupd_device):
                 self.set_reg(3, _q.decode())
             del self.qble
             self.qble = []
-        
+
         if len(self.quart) > 0:
             for _q in self.quart:
                 if self.ble is not None:
@@ -83,7 +79,7 @@ class uart_device(fwupd_device):
                 self.set_reg(3, _q.decode())
             del self.quart
             self.quart = []
-        
+
         if len(self.qmqtt) > 0:
             for _q in self.qmqtt:
                 if self.ble is not None:
@@ -115,11 +111,8 @@ def main():
                 except:
                     print('Could not get update from NTP server')
                 modem_init = net.is_connected()
-        
-        if hasattr(board, "modem") and not cfg.force_wlan:
-            board.modem.__
-            
-        if  hasattr(board, "network") and not modem_init:
+
+        if hasattr(board, "network") and not modem_init:
             net = board.network
             net.init()
             time.sleep(5)
@@ -127,7 +120,7 @@ def main():
             while not net.is_connected() and _start < (time.time() + 30):
                 print('waiting for network...')
                 time.sleep(1)
-            
+
             if cfg.wlan_mode == 0:
                 try:
                     ntptime.settime()
@@ -135,22 +128,23 @@ def main():
                     print('Could not get update from NTP server')
             wlan_init = net.is_connected()
 
-
         if wlan_init:
-            start_thread(lambda: webapp.init().run(port=80),(),8192)
+            start_thread(lambda: webapp.init().run(port=80), (), 8192)
 
         if wlan_init or modem_init:
             device = uart_device(cfg.serial)
             if hasattr(board, "ble") and not wlan_init:
                 device.set_ble(board.ble)
 
-            hub = HUB(cfg.server, cfg.token, [device])
+            _usr = None if cfg.srv_user == "" else cfg.srv_user
+            _pwd = None if cfg.srv_pwd == "" else cfg.srv_pwd
+            hub = HUB(cfg.server, cfg.token, [device], _usr, _pwd)
             hub.connect()
+
             def dev_step_thread():
                 nonlocal hub
                 while hub.is_connected:
                     hub.step()
-
             dev_step_thread()
 
     else:
@@ -159,15 +153,18 @@ def main():
 Connect to the Serial terminal at /tmp/uart
 '''
         device = uart_device(cfg.serial)
-        hub = HUB(cfg.server, cfg.token, [device])
+        _usr = None if cfg.srv_user == "" else cfg.srv_user
+        _pwd = None if cfg.srv_pwd == "" else cfg.srv_pwd
+        hub = HUB(cfg.server, cfg.token, [device], _usr, _pwd)
         hub.connect()
+
         def dev_step_thread():
             nonlocal hub
             while hub.is_connected:
                 hub.step()
 
-        start_thread(lambda: webapp.init().run(port=3000),(), 128 * 1024)
-        start_thread(lambda: dev_step_thread(),(), 128 * 1024)
+        start_thread(lambda: webapp.init().run(port=3000), (), 128 * 1024)
+        start_thread(lambda: dev_step_thread(), (), 128 * 1024)
         code.interact(banner, local=locals())
 
 

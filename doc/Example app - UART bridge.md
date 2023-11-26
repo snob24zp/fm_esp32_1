@@ -27,6 +27,17 @@ Also, to use such configuration, Micropython build set MICROPY_HW_ENABLE_UART_RE
 
 Already built Micropython release with these changes could be found in `other/esp32-c3_wo_repl` folder, and could be 'burned' by `deploy.sh` script (needed esptool.py)
 
+#### Device related registers
+
+On real device, except 3-rd register also available, registers 3,4,5,6. Where:
+
+* Register 3 - UART Pipe, which silently transfers data from MQTT to BLE and to UART, and vice-versa
+* Register 4 - Color of internal LED on [ ESP32-C3-DevKitM-1](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/hw-reference/esp32c3/user-guide-devkitm-1.html) 
+	* Used RGB integer format, ie to set red diode color - need to write 16711680 value (converted from hex - 0xff0000)
+* Register 5 - Used to send SMS, and due to current limitation will work only via wifi connection, but with presence SIM-card. To force connection to wifi option use register 6 
+	* Used JSON format: `{"to":"+3812345678", "msg": "Message which should be sent"}`
+* Register 6 - Used to force WIFI connection, if set this register to 1, device will reboot and try to establish a connection via WIFI instead of GSM/LTE. To set default value, write into it - 0
+
 ## Windows
 
 

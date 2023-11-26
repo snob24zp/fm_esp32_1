@@ -27,6 +27,8 @@ class config_t(json_object):
         self.serial = int.from_bytes(bytes.fromhex(self.mac)[2:],'little')
         self.device_id = hashlib.sha256(self.mac.encode()).digest().hex()
         self.force_wlan = False
+        self.srv_user = ""
+        self.srv_pwd = ""
 
         if cfg_file in os.listdir('.'):
             with open(cfg_file, "rt") as c:

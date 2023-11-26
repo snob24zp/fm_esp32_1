@@ -1,1 +1,15 @@
-{"mac": "1be6213a4ca4", "wlan_mode": 1, "ap_ssid": "AR-1be6213a4ca4", "ap_pwd": "", "sta_ssid": "AR-1be6213a4ca4", "sta_pwd": "12345678", "ifconfig": ["dhcp"], "server": "x.ks.ua", "token": "1b:e6:21:3a:4c:a4", "serial": 2756459041, "device_id": "51a6027dfe69afa771e4c8d584daa38cd79b5eb7abce9494fb12114157b63ad3"}
+{
+    "mac": "1be6213a4ca4",
+    "wlan_mode": 1,
+    "ap_ssid": "AR-1be6213a4ca4",
+    "ap_pwd": "",
+    "sta_ssid": "AR-1be6213a4ca4",
+    "sta_pwd": "12345678",
+    "ifconfig": [
+        "dhcp"
+    ],
+    "server": "x.ks.ua",
+    "token": "1b:e6:21:3a:4c:a4",
+    "serial": 2756459041,
+    "device_id": "51a6027dfe69afa771e4c8d584daa38cd79b5eb7abce9494fb12114157b63ad3"
+}
