@@ -1,0 +1,60 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "main",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-Wall",
+                "-fdiagnostics-color=always",
+                "-fPIC",
+                "-g",
+                "main.c",
+                "gsm0710.c",
+                "buffer.c",
+                "-o",
+                "${workspaceFolder}/main"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Задача создана отладчиком."
+        },
+        {
+            "type": "cppbuild",
+            "label": "so-build",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-Wall",
+                "-fdiagnostics-color=always",
+                "-shared",
+                "-fPIC",
+                "-g",
+                "main.c",
+                "gsm0710.c",
+                "buffer.c",
+                "-o",
+                "${workspaceFolder}/gsm0710.so"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Задача создана отладчиком."
+        }
+    ],
+    "version": "2.0.0"
+}

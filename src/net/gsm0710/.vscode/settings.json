@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "stdint.h": "c",
+        "signal.h": "c",
+        "*.tcc": "c",
+        "chrono": "c",
+        "complex": "c",
+        "functional": "c",
+        "string_view": "c",
+        "random": "c",
+        "istream": "c",
+        "limits": "c",
+        "numeric": "c",
+        "algorithm": "c"
+    }
+}

@@ -5,3 +5,4 @@ out/**
 data/**
 fw.tmp/**
 fw.img
+*.so
