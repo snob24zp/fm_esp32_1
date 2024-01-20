@@ -35,17 +35,17 @@ void init(uint8_t num_ch)
     open_mux(&ctx, num_ch);
 }
 
-void set_on_fault(void (*cb)(uint32_t))
+void set_on_fault(void (*cb)(gsm0710_ctx_t*, uint32_t))
 {
     ctx.on_fault = cb;
 }
 
-void set_on_read_vl(void (*cb)(uint8_t, const void *, size_t))
+void set_on_read_vl(void (*cb)(gsm0710_ctx_t*, uint8_t, const void *, size_t))
 {
     ctx.on_read_vl = cb;
 }
 
-void set_write_sl(size_t (*cb)(const void *, size_t))
+void set_write_sl(size_t (*cb)(gsm0710_ctx_t*, const void *, size_t))
 {
     ctx.write_sl = cb;
 }

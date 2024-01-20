@@ -6,3 +6,7 @@ data/**
 fw.tmp/**
 fw.img
 *.so
+*.o
+*.
+src/net/gsm0710/build/**
+src/net/gsm0710/.vscode/**

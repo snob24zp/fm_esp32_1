@@ -82,7 +82,7 @@ typedef struct _gsm0710_ctx
 	 * @param buf Output data
 	 * @param len Output size
 	 */
-	size_t (*write_sl)(const void *, size_t); 
+	size_t (*write_sl)(struct _gsm0710_ctx*, const void *, size_t); 
 	
 	/**
 	 * @brief On recieve in virtual line
@@ -90,14 +90,14 @@ typedef struct _gsm0710_ctx
 	 * @param data Read data (output-data)
 	 * @param len Length of read data
 	 */
-	void (*on_read_vl)(uint8_t, const void *, size_t);
+	void (*on_read_vl)(struct _gsm0710_ctx*, uint8_t, const void *, size_t);
 	
 	/**
 	 * @brief On fault
 	 * Will be called if terminate set to 1 somewhere
 	 * @param err Error number (line number in gsm0710.c)
 	*/
-	void (*on_fault)(uint32_t);
+	void (*on_fault)(struct _gsm0710_ctx*, uint32_t);
 } gsm0710_ctx_t;
 
 /**
@@ -129,5 +129,6 @@ size_t on_read_sl(gsm0710_ctx_t *ctx, const void* buf, size_t len);
  * @param len Output data len
 */
 size_t write_vl(gsm0710_ctx_t *ctx, uint8_t port, const uint8_t* buf, size_t len);
+
 
 #endif /* _GSM0710_H_ */

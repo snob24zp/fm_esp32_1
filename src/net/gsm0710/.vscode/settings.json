@@ -11,6 +11,8 @@
         "istream": "c",
         "limits": "c",
         "numeric": "c",
-        "algorithm": "c"
+        "algorithm": "c",
+        "uart.h": "c",
+        "condition_variable": "c"
     }
 }

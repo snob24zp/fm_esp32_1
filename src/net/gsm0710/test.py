@@ -5,25 +5,25 @@ import ctypes as c
 import pathlib
 import threading
 
-# to compile lib - `gcc -Wall -fdiagnostics-color=always -shared -fPIC -g main.c gsm0710.c buffer.c -o gsm0710.so`
+# to compile lib - `gcc -Wall -fdiagnostics-color=always -shared -fPIC -g unix.c gsm0710.c buffer.c -o gsm0710.so`
 
 if __name__ == "__main__":
     # Load the shared library into ctypes
     libname = pathlib.Path().absolute() / "gsm0710.so"
     c_lib = c.CDLL(libname)
     with serial.Serial('/dev/ttyUSB0', 115200, timeout=1) as ser:
-        @c.CFUNCTYPE(None, c.c_uint32)
-        def on_fault(a):
+        @c.CFUNCTYPE(None, c.c_void_p, c.c_uint32)
+        def on_fault(ctx, a):
             print('On fault: Line:',  a)
 
-        @c.CFUNCTYPE(c.c_size_t, c.c_char_p, c.c_size_t)
-        def write_sl(data: bytes, sz: int):
+        @c.CFUNCTYPE(c.c_size_t, c.c_void_p, c.c_char_p, c.c_size_t)
+        def write_sl(ctx, data: bytes, sz: int):
             print('Write slave:', data[:sz].hex('-'), sz)
             ser.write(data[:sz])
             return sz
 
-        @c.CFUNCTYPE(None, c.c_uint8,  c.c_char_p, c.c_size_t)
-        def on_read_vl(port: int, data: bytes, sz: int):
+        @c.CFUNCTYPE(None,c.c_void_p, c.c_uint8, c.c_char_p, c.c_size_t)
+        def on_read_vl(ctx, port: int, data: bytes, sz: int):
             print('on read virtual:', port, data[:sz].hex('-'), sz, data[:sz].decode('ascii'))
 
         c_lib.set_on_fault(on_fault)

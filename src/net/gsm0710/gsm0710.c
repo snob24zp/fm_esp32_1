@@ -38,6 +38,20 @@
 
 #define WRITE_RETRIES 5
 
+#ifdef MICROPY_ENABLE_DYNRUNTIME
+#include "py/dynruntime.h"
+#define printf(...) mp_printf(&mp_plat_print, __VA_ARGS__)
+
+void *malloc(size_t n) {
+    void *ptr = m_malloc(n);
+    return ptr;
+}
+
+void free(void *ptr) {
+    m_free(ptr);
+}
+#endif
+
 static const int max_frame_size = 127; // 31 - The limit of Sony-Ericsson GM47
 
 static int write_frame(gsm0710_ctx_t *ctx, int channel, const uint8_t *input, int count, uint8_t type)
@@ -70,7 +84,7 @@ static int write_frame(gsm0710_ctx_t *ctx, int channel, const uint8_t *input, in
     // CRC checksum
     postfix[0] = make_fcs(prefix + 1, prefix_length - 1);
 
-    c = ctx->write_sl(prefix, prefix_length);
+    c = ctx->write_sl(ctx, prefix, prefix_length);
     if (c != prefix_length)
     {
         printf("Couldn't write the whole prefix to the serial port for the virtual port %d. Wrote only %d  bytes.", channel, c);
@@ -78,14 +92,14 @@ static int write_frame(gsm0710_ctx_t *ctx, int channel, const uint8_t *input, in
     }
     if (count > 0)
     {
-        c = ctx->write_sl(input, count);
+        c = ctx->write_sl(ctx, input, count);
         if (count != c)
         {
             printf("Couldn't write all data to the serial port from the virtual port %d. Wrote only %d bytes.\n", channel, c);
             return 0;
         }
     }
-    c = ctx->write_sl(postfix, 2);
+    c = ctx->write_sl(ctx, postfix, 2);
     if (c != 2)
     {
         printf("Couldn't write the whole postfix to the serial port for the virtual port %d. Wrote only %d bytes.", channel, c);
@@ -97,7 +111,7 @@ static int write_frame(gsm0710_ctx_t *ctx, int channel, const uint8_t *input, in
 
 static int ussp_send_data(gsm0710_ctx_t *ctx, uint8_t *buf, int n, int port)
 {
-    ctx->on_read_vl(port, buf, n);
+    ctx->on_read_vl(ctx, port, buf, n);
     return n;
 }
 
@@ -149,7 +163,7 @@ static void handle_command(gsm0710_ctx_t *ctx, GSM0710_Frame *frame)
                 }
                 break;
             default:
-                fprintf(stderr, "Unknown command (%d) from the control channel.\n", type);
+                printf( "Unknown command (%d) from the control channel.\n", type);
                 response = (uint8_t *)malloc(sizeof(uint8_t) * (2 + type_length));
                 response[0] = C_NSC;
                 // supposes that type length is less than 128
@@ -178,7 +192,7 @@ static void handle_command(gsm0710_ctx_t *ctx, GSM0710_Frame *frame)
             // received ack for a command
             if (COMMAND_IS(C_NSC, type))
             {
-                fprintf(stderr, "The mobile station didn't support the command sent.\n");
+                printf("The mobile station didn't support the command sent.\n");
             }
         }
     }
@@ -304,7 +318,7 @@ size_t on_read_sl(gsm0710_ctx_t *ctx, const void *buf, size_t len)
     {
         if (ctx->on_fault)
         {
-            ctx->on_fault(ctx->terminate);
+            ctx->on_fault(ctx, ctx->terminate);
         }
         return 0;
     }
@@ -332,7 +346,7 @@ size_t write_vl(gsm0710_ctx_t *ctx, uint8_t port, const uint8_t *buf, size_t len
     {
         if (ctx->on_fault)
         {
-            ctx->on_fault(ctx->terminate);
+            ctx->on_fault(ctx, ctx->terminate);
         }
         return 0;
     }
