@@ -5,7 +5,7 @@ import ctypes as c
 import pathlib
 import threading
 
-# to compile lib - `gcc -Wall -fdiagnostics-color=always -shared -fPIC -g unix.c gsm0710.c buffer.c -o gsm0710.so`
+# to compile lib - `gcc -Wall -fdiagnostics-color=always -Wno-incompatible-pointer-types -shared -fPIC -g unix.c gsm0710.c buffer.c -o gsm0710.so`
 
 if __name__ == "__main__":
     # Load the shared library into ctypes
