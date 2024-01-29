@@ -14,8 +14,11 @@ class uart_link(link):
         self.__uart.flush()
 
     def poll(self):
-        ret_sz = self.__uart.any()
-        if ret_sz > self._threshold and ret_sz < 256 and self.rx_cb is not None:
-            _ret = self.__uart.read(ret_sz)
-            if _ret is not None:
-                self.rx_cb(self, _ret)
+        try:
+            ret_sz = self.__uart.any()
+            if ret_sz > self._threshold and ret_sz < 256 and self.rx_cb is not None:
+                _ret = self.__uart.read(ret_sz)
+                if _ret is not None:
+                    self.rx_cb(self, _ret)
+        except OSError as ex:
+            print(f'!!! UART exception !!! {self.__uart} -> {ex}')
