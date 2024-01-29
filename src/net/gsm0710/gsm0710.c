@@ -23,7 +23,6 @@
  * @see https://raw.githubusercontent.com/ya-jeks/gsmmux/
  */
 
-#include <features.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>

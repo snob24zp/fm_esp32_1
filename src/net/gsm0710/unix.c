@@ -14,7 +14,7 @@ void print_hex(const void *data, size_t len)
 
 static void __mock_on_fault(uint32_t line)
 {
-    fprintf(stderr, "Error in LINE: %d \r\n", line);
+    fprintf(stderr, "Error in LINE: %"PRIu32" \r\n", line);
 }
 
 static void __mock_on_read_vl(uint8_t port, const void *buf, size_t len)
