@@ -4,6 +4,17 @@ import time
 from log import log
 from net.mqtt import MQTTClient
 from uclient.transport import transport
+import sys
+if sys.version.count('MicroPython') > 0:
+    import _thread
+    from machine import reset
+else:
+    from threading import Lock
+
+    def reset():
+        print('Reseting device')
+
+
 
 
 class mqtt_transport(transport, log):
@@ -16,6 +27,11 @@ class mqtt_transport(transport, log):
         self.client = None
         self.host = 'x.ks.ua'
         self.port = 1883
+        if sys.version.count('MicroPython') > 0:
+            self.lock = _thread.allocate_lock()
+        else:
+            self.lock = Lock()
+
         self.__subscribers = {}
     
     @log.dbg_wr
@@ -49,7 +65,8 @@ class mqtt_transport(transport, log):
     def publish(self, topic: str, value: bytes, qos: int = 0) -> None:
         '''Publish message'''
         if self.client is not None:
-            self.client.publish(topic, msg=str(value), qos=qos)
+            with self.lock:
+                self.client.publish(topic, msg=str(value), qos=qos)
 
     @log.dbg_wr
     def subscribe(self, topic: str, callback: object) -> None:
@@ -126,6 +143,8 @@ class mqtt_transport(transport, log):
             except OSError as e:
                 self.err(f'OS-Error: {e}')
                 _int_reconnect *= 2
+                if (_int_reconnect > 256):
+                    reset()
 
     def step(self):
         '''Make a step (ie maintenance method)'''

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """Provides device version, use STATIC_VERSION on device, and get_version() to rebuild this file"""
-STATIC_VERSION = "R231119;master;c5493d6a3d66a18e791cea35edb8dfef668730bf"
+STATIC_VERSION = "R240201;master;e89029bf60793daed45c8101ee145a73cc811f6e"
 
 def get_version():
     """Function to rebuild the device version string"""

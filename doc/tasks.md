@@ -76,3 +76,4 @@
 	- [ ] sending sms from uart/ble side
 - [x] Inherit WLAN from 'net_if' class
 - [x] Bluetooth module
+- [x] re-check flashing

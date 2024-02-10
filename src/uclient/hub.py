@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 
 try:
-    from time import ticks_ms
+    from time import ticks_ms, sleep
+    from machine import reset
 except ImportError:
     import time
     def ticks_ms():
         return int(time.time() * 1000)
+    def sleep(n):
+        time.sleep(n)
+    def reset():
+        print('Reseting device')
 
 import json
 
@@ -376,12 +381,26 @@ class HUB(log):
             self.warn("Try to connect without uri-schema")
 
         h = self.server.split(':')
-        if len(h) == 1:
-            self.client.connect(h[0], port=port, 
-                                user=self.username, password=self.password, use_ssl=use_ssl)
-        elif len(h) == 2:
-            self.client.connect(h[0], port=int(h[1]), 
-                                user=self.username, password=self.password, use_ssl=use_ssl)
+        timeout = 1
+        while True:
+            try:
+                if len(h) == 1:
+                    self.client.connect(h[0], port=port, 
+                                        user=self.username, password=self.password, use_ssl=use_ssl)
+                elif len(h) == 2:
+                    self.client.connect(h[0], port=int(h[1]), 
+                                        user=self.username, password=self.password, use_ssl=use_ssl)
+                break
+            except OSError:
+                sleep(timeout)
+                timeout *= 2
+                if timeout < 256:
+                    self.warn(f'Reconnect in {timeout} sec')
+                else:
+                    self.err('Can\'t connect to the server')
+                    reset()
+                    return
+
 
 
 def test():

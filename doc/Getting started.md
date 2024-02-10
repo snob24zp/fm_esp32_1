@@ -15,7 +15,7 @@ More details related to micropython could be found at [https://docs.micropython.
 2. Connect board to the PC
 3. With esp-tool erase current contents of flash `esptool.py --port /dev/ttyUSB0 erase_flash` (Note: port could be different)
 4. Go to official micropython esp32 port page and download latest Micropython firmware: https://micropython.org/download/ESP32_GENERIC/
-5. Write downloaded firmware into ESP32 Flash: `esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 460800 write_flash -z 0x1000 ESP32_GENERIC-*.bin`
+5. Write downloaded firmware into ESP32 Flash: `esptool esp32c3 -p /dev/ttyUSB0 -b 460800 --before=default_reset --after=hard_reset --no-stub write_flash --flash_mode dio --flash_freq 80m --flash_size 4MB 0x0 bootloader.bin 0x10000 micropython.bin 0x8000 partition-table.bin`
 6. Open any Serial terminal with provided port above (`/dev/ttyUSB0`) and speed 115200, and press enter, you should see prompt `>>>`
 
 ## 2. Uploading firmware 

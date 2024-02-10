@@ -89,6 +89,10 @@ for _lib in ${HTMLS[@]}; do
 done
 
 $CMD put static/favicon.ico static/favicon.ico
+echo "Pushing FW-UPD host restrictions"
+$CMD rmdir data &> /dev/null
+$CMD mkdir data &> /dev/null
+$CMD put src/fwupd.hosts data/fwupd.hosts
 
 echo "Reset board"
 # $CMD reset

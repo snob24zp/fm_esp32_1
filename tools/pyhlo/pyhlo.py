@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import sys
+import json
 import os.path
 from threading import Timer
 import xml.etree.ElementTree as xml_parser
@@ -37,12 +38,12 @@ class pyhlo:
 
     def on_connect(self, cl, userdata, flags, rc):
         print("Connected with result code: %d " % rc)
-        self.client.subscribe("/%s/fw/pkg" % self.args.device)
-        self.client.subscribe("/%s/fw/upd" % self.args.device)
+        self.client.subscribe(f"<{self.args.device}/fw_pkg")
+        self.client.subscribe(f"<{self.args.device}/fw_upd")
         print("\r\nStart uploading..")
         self.elapsed = time.perf_counter()
-        self.client.publish("/%s/fw/upd" % self.args.device, '1', qos=1)
-        self.client.publish("/%s/fw/pkg" % self.args.device, self.raw_fw[0], qos=1)
+        self.client.publish(f">{self.args.device}/fw_upd", '1', qos=1)
+        self.client.publish(f">{self.args.device}/fw_pkg", f'"{self.raw_fw[0]}"', qos=1)
         self.exit_tmr = Timer(30.0,self.exit, args=[2])
         self.exit_tmr.setDaemon(True)
         self.exit_tmr.start()
@@ -81,21 +82,24 @@ class pyhlo:
 
     def on_message(self, cl, userdata, msg):
         value = msg.payload.decode("utf-8")
-        if msg.topic == f"/{self.args.device}/fw/upd" and value == '0':
+        if msg.topic == f"/{self.args.device}/fw_upd" and value == '0':
             if self.exit_tmr is not None:
                 self.exit_tmr.cancel();
             print("\r\nReseting device!")
-            self.client.publish("/%s/fw/upd" % self.args.device, '3')
+            self.client.publish(f">{self.args.device}/fw_upd", '3')
             print(f"\r\nDone! in: { time.perf_counter() - self.elapsed:0.4f} seconds")
             self.exit_tmr = Timer(1.0,self.exit)
             self.exit_tmr.start()
 
         try:
-            if msg.topic == f"/{self.args.device}/fw/pkg":
+            if msg.topic[1:] == f"{self.args.device}/fw_pkg":
                 if self.exit_tmr is not None:
                     self.exit_tmr.cancel();
-                val = int(value)
-                if val > 0:
+                
+                val = json.loads(value)
+                
+                if 'chunk' in val:
+                    val = val['chunk']
                     if len(self.raw_fw) > val:
                         if self.prevoius_idx == val:
                             self._err_cnt_inc()
@@ -104,8 +108,8 @@ class pyhlo:
                         else:
                             self.error_cnt = 0
 
-                        self.client.publish("/%s/fw/pkg" % self.args.device, self.raw_fw[val], qos=1)
-                        self.print_progress(val, len(self.raw_fw), prefix="Uploading: ")
+                        self.client.publish(f">{self.args.device}/fw_pkg", f'"{self.raw_fw[val]}"', qos=1)
+                        self.print_progress(val, len(self.raw_fw)-1, prefix="Uploading: ")
                         self.prevoius_idx = val
                         self.exit_tmr = Timer(30.0,self.exit)
                         self.exit_tmr.start()
@@ -113,12 +117,15 @@ class pyhlo:
                     else:
                         time.sleep(5)
                         print("\r\nStart upgrading..")
-                        self.client.publish("/%s/fw/upd" % self.args.device, '2', qos=1)
+                        self.client.publish(f">{self.args.device}/fw_upd", '2', qos=1)
+                        time.sleep(5)
+                        self.client.publish(f">{self.args.device}/fw_upd", '3', qos=1)
                         self.exit_tmr = Timer(30.0,self.exit)
                         self.exit_tmr.start()
-                else:
+                elif 'error' in val:
+                    print('\t Device return error: ', val['error'], ' Trying again', '.' * self.error_cnt)
                     self._err_cnt_inc()
-                    self.client.publish("/%s/fw/pkg" % self.args.device, self.raw_fw[self.prevoius_idx], qos=1)
+                    self.client.publish(f">{self.args.device}/fw_pkg", f'"{self.raw_fw[self.prevoius_idx]}"', qos=1)
                     self.exit_tmr = Timer(30.0,self.exit)
                     self.exit_tmr.start()
 

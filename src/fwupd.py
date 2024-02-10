@@ -64,7 +64,7 @@ class ueba_pkg:
             log.warn('CRC2 missmatch')
             return None
 
-        log.warn(f'Unpacked: {data[3]} bytes')
+        log.warn(f'Unpacked: {data[3]} bytes [@{data[2]:05x}]')
         return ueba_pkg(data[1], data[2], data[3], data[5][:data[3]])
 
 
@@ -118,7 +118,7 @@ class fwupd(log):
         if int(cmd) == 0:
             self.reset()
             return 'OK'
-        elif int(cmd) == 1 and self.state == None:
+        elif int(cmd) == 1:
             self.reset()
             self.state = 1
             self.warn('Prepared to upgrade')
@@ -126,18 +126,20 @@ class fwupd(log):
         elif int(cmd) == 2 and self.state == 1:
             self.warn('Try to mount incoming FW-image')
             try:
-                if self._is_not_simu:
+                if sys.version.count('MicroPython') > 0:
                     disk.mount(fwupd.FW_FILE, fwupd.FW_MOUNTPOINT)
                 else:
                     time.sleep(1)
                 self.warn('Mounting done. Image valid')
                 self.state = 2
                 return 'OK'
-            except:
+            except Exception as ex:
+                self.err(str(ex))
                 self.state = 0
+                os.unlink(fwupd.FW_FILE)
                 return "Error"
         elif int(cmd) == 3 and self.state == 2:
-            if self._is_not_simu:
+            if sys.version.count('MicroPython') > 0:
                 machine.Timer(-1, period=1000, mode=machine.Timer.ONE_SHOT, callback=lambda t: machine.reset())
             return 'OK'
         else:

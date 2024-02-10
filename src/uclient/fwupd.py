@@ -1,5 +1,6 @@
 
 import os
+import gc
 from fwupd import fwupd, ueba_pkg
 
 import mrequests
@@ -31,14 +32,19 @@ class fwupd_device(event_device, fwupd):
                     fd.write(data)
                     total += sz
                     self.info(f"Downloaded: {total}")
-                    self.pub_dev(topic, total)
-    
+
+            self.pub_dev(topic, total)
+
     def convert(self):
         with open(fwupd_device.UEBA_FW, 'rt') as fd:
             idx = 0
             rest = ""
             while True:
-                data = rest + fd.read(1024)
+                r = fd.read(1024 - len(rest))
+                if not r or len(r) == 0:
+                    break
+
+                data = rest + r
                 start_idx = data.find("<chunk>") + len("<chunk>")
                 if start_idx == -1:
                     break
@@ -46,17 +52,18 @@ class fwupd_device(event_device, fwupd):
                 stop_idx = data.find("</chunk>")
                 if stop_idx == -1:
                     data += fd.read(1024)
-                
-                stop_idx = data.find("</chunk>")
-                if stop_idx == -1:
-                    break
+                    stop_idx = data.find("</chunk>")
+                    if stop_idx == -1:
+                        self.err("Can't find </chunk> tag")
+                        break
 
                 rest = data[stop_idx + len("</chunk>"):]
                 data = data[start_idx:stop_idx]
 
                 self.info(f'Decrypt {idx} chunk')
-                data = base64.b64decode(data)
-                pkg = ueba_pkg.parse(self, data)
+                pkg = ueba_pkg.parse(self, base64.b64decode(data))
+
+                del data
                 if pkg is not None:
                     idx = pkg.offset // fwupd.PG_SZ
                     with open(fwupd.FW_FILE, 'wb' if idx == 0 else 'r+b') as out_fd:
@@ -76,6 +83,7 @@ class fwupd_device(event_device, fwupd):
             self.state = 1
         except OSError as ex:
             self.err(f'Downloading failed: {str(ex)}')
+            self.pub_dev(topic, f'{"error": "{str(ex)}"}')
 
     def hnd_msg(self, topic, msg):
         if topic == 'fw_upd':
@@ -92,11 +100,12 @@ class fwupd_device(event_device, fwupd):
             try:
                 with open(fwupd_device.ALLOWED_HOSTS_FILE, 'rt') as fd:
                     for host in fd.readlines():
-                        if msg.startswith(host):
+                        self.info(f'Checking {host.strip()} <=> {msg}')
+                        if msg.startswith(host.strip()):
                             allow = True
                             break
-            except OSError:
-                pass
+            except OSError as ex:
+                self.err(str(ex))
             
             if not allow:
                 self.err('Downloading FW-Update is forbiden')

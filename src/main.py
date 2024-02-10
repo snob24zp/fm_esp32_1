@@ -12,7 +12,7 @@ if sys.version.count('MicroPython') > 0:
 else:
     import code
 
-
+from log import log
 from uclient.fwupd import fwupd_device
 from uclient.hub import HUB
 from threadmpy import start_thread
@@ -41,7 +41,7 @@ class uart_device(fwupd_device):
 
     def on_change_reg(self, topic: str, msg: object):
         if self.isnumeric(topic) and int(topic) == 3:
-            self.qmqtt.append(json.dumps(msg).encode())
+            self.qmqtt.append(json.dumps(msg).encode()[1:-1])
         if self.isnumeric(topic) and int(topic) == 4:
             if sys.version.count('MicroPython') > 0 and isinstance(msg, int):
                 board.led[0] = ((msg >> 16) & 0xff, (msg >> 8) & 0xff, msg & 0xff)
@@ -93,6 +93,7 @@ class uart_device(fwupd_device):
 
 def main():
     global device
+    log.set_log_lvl(log.INFO)
     cfg = config_t()
     print(f'Current config: {cfg.json()}')
     if sys.version.count('MicroPython') > 0:
