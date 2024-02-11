@@ -14,7 +14,7 @@ More details related to micropython could be found at [https://docs.micropython.
 1. To burn micropython into ESP32 you should download esp-tool. Tool could be found here: https://github.com/espressif/esptool/ or downloaded via `python -m pip install esptool`
 2. Connect board to the PC
 3. With esp-tool erase current contents of flash `esptool.py --port /dev/ttyUSB0 erase_flash` (Note: port could be different)
-4. Go to official micropython esp32 port page and download latest Micropython firmware: https://micropython.org/download/ESP32_GENERIC/
+4. Take micropython files from 'other' folder
 5. Write downloaded firmware into ESP32 Flash: `esptool esp32c3 -p /dev/ttyUSB0 -b 460800 --before=default_reset --after=hard_reset --no-stub write_flash --flash_mode dio --flash_freq 80m --flash_size 4MB 0x0 bootloader.bin 0x10000 micropython.bin 0x8000 partition-table.bin`
 6. Open any Serial terminal with provided port above (`/dev/ttyUSB0`) and speed 115200, and press enter, you should see prompt `>>>`
 

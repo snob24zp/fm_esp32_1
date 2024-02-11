@@ -13,5 +13,5 @@ Example:
 
 Direction of topic:  HUB -> SERVER
 
-More details about registration could be found in [client registration](obsidian://open?vault=tasks&file=esp32-uclient%2FClient%20registration)
+More details about registration could be found in [[../Client registrations|Client registrations]]
 

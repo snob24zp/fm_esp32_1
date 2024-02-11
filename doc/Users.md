@@ -14,7 +14,7 @@ There are two types of identifications stores in device. One identification per 
 * `Device identificator (did)` - will be generated from a WIFI name and WIFI password via sha256 hash function if has been used WIFI connection. Or through the same sha256 from number of phone if has been used connection via mobile broadband. 
 * `User identificator (uid)` - Which is adds on creating user in the device and should be generated via sha256 from a username and password
 
-Information related to used topics could be found in [[Users topics]]
+Information related to used topics could be found in [[topics/hub/device/Users topics|Users topics]]]
 
 ## User data
 

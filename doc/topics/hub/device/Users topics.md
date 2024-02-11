@@ -20,7 +20,7 @@ To encode data-string for user need to use next structure:
 | Offset | Name | Description | 
 | ---    | --- | --- |
 | 0..31  | uid | User identification | 
-| 32     | global_permission | Global permission (details check @ [[Users]]) | 
+| 32     | global_permission | Global permission (details check @ [[../../../Users\|Users]]) | 
 | 33..97 | user_name | User name | 
 | 97..*  | access_list | Array of 16 bits values with numbers of registers |
 

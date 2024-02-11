@@ -31,6 +31,8 @@ do
 done
 mkdir -p "$CWD/tests"
 cp -R ./artifacts/tests-summary/*.html  "$CWD/tests"
+cp -R ./artifacts/docs-summary/*.html  "$CWD/html"
+
 
 # /opt/gen_rel 
 # python3 /opt/updater_pub.py

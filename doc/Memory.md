@@ -12,4 +12,4 @@ There are only two topics inside:
 * `write` - Write device memory. Format - \[addr];\[data] . Response will have format: - \[addr];\[size]
 
 This topics uses base64 to encode the data
-Check examples in [[Topic 'read']] and [[Topic 'write']]
+Check examples in [[topics/hub/device/Memory topics/Topic 'read'|Topic 'read']] and [[topics/hub/device/Memory topics/Topic 'write'|Topic 'write']]

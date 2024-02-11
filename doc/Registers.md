@@ -39,7 +39,7 @@ Protocol version 1, can exchange register values only as integer, and didn't hav
 [1690212395] /dc:a6:32:44:eb:fc/4832232/7 1105659259
 ```
 
-[[Register topic]]
+[[topics/hub/device/Register topic|Register topic]]
 
 **All messages should be  JSON well-formed**
 

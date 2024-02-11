@@ -4,9 +4,9 @@
 
 Client registration goes in a several steps:
 
-1. Client sends his MAC address (ie HUB identification token, which could be not mac-address) to the public topic `/reg` ([topic reg](obsidian://open?vault=tasks&file=esp32-uclient%2Fmqtt-topics%2FTopic%20'reg'))
+1. Client sends his MAC address (ie HUB identification token, which could be not mac-address) to the public topic `/reg` ([[topics/Topic 'reg'|Topic 'reg']])
 2. Server responds with a unixtime in mS to the topic `/{hub}/time`. This operation doing clock synchronization between server and client
-3. Clients sends short information about devices, version, etc. See description of topic in [topic info](obsidian://open?vault=tasks&file=esp32-uclient%2Fmqtt-topics%2Fhub%2FTopic%20'info')
+3. Clients sends short information about devices, version, etc. See description of topic in  [[topics/hub/Topic 'info'|Topic 'info']]
 5. Hub, devices connected to the hub and server now in 'READY' state and can starts communications
 
 Example:

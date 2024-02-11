@@ -13,4 +13,4 @@ Use obsidian to correctly view documentation
 7. [[Users]]
 8. [[Firmware update]]
 9. 
-10. [[esp32-uclient/tasks|tasks]]
+10. [[tasks]]

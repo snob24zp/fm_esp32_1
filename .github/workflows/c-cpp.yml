@@ -49,6 +49,16 @@ jobs:
       with:
         name: 'tests-summary'
         path: out/tests/
+  GenDoc:
+    name: 'Генерация документации'
+    runs-on: self-hosted
+    needs: Build
+    steps:
+    - run: ./ci/00-gendoc.sh
+    - uses: actions/upload-artifact@v2
+      with:
+        name: 'docs-summary'
+        path: out/docs/
   Release:
     name: 'Подготовка релиза'
     runs-on: self-hosted

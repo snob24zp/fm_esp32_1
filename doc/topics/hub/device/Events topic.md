@@ -1,6 +1,6 @@
 # Events topic
 
-Events topic has next topic format: `{direction}{hub}/{device}/events/{reg}` . Where `reg` - register number from which will be read stored events (about other parts refer to [[Registers]])
+Events topic has next topic format: `{direction}{hub}/{device}/events/{reg}` . Where `reg` - register number from which will be read stored events (about other parts refer to [[../../../Registers|Registers]])
 
 Request format: `[unixtime from];[unixtime to]`
 Response format - JSON arrays per message, the last one will be empty JSON object. Inside JSON object: `tm` - Event unixtime. `r` - Register number `v` - Register value on this moment. 

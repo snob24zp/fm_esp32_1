@@ -7,7 +7,7 @@ Firmware update could be divided into three variants of updating:
 * Updating via mqtt firmware update topics, where server push the data to the device (in-band - means inside-mqtt)
 * Updating via mqtt firmware update topics, where device downloads itself remote package (out-of-band - means outside-mqtt)
 
-More information about firmware package structure could be found in [[UEBA bootloader]] and in [[Device filesystem]]
+More information about firmware package structure could be found in [[UEBA bootloader]] and in [[Device filesystem]]]
 ## Updating via device web page
 
 Every device have a internal web-server to make initial configuration of system. This web-server also have a page (http://[device-ip]/fw.html) which gives possibility to update the firmware in device.
@@ -75,7 +75,7 @@ Example:
 [1698504765] <48:3f:da:55:07:5b/3996365522/fw_upd "OK"
 ```
 
-@see [[Firmware update topics]]
+@see [[topics/hub/device/Firmware update topics|Firmware update topics]]
 
 ## Firmware update via out-of-band download
 
