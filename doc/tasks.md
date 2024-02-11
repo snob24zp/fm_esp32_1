@@ -44,6 +44,7 @@
 		- [ ] windows pyinstaller
 		- [ ] generate sphinx documentation
 	- [ ] Batch transfers
+	- [ ] Current time register (/3?)
 - [ ] update USERVER according to last changes in UCLIENT
 	- [ ] Protocol V2
 		- [x] registration
