@@ -2,7 +2,12 @@ import os
 import pathlib
 import markdown
 from wikilinks import WikiLinkExtension
+from jinja2 import Template
 
+
+def tpl_hnd(html:str, output_file:pathlib.Path):
+    tmpl = Template(pathlib.Path('./ci/doc.template.jinja2').read_text())
+    output_file.write_text(tmpl.render(body=html))
 
 def gen_html(path, output_path):
     for f in pathlib.Path(path).iterdir():
@@ -12,7 +17,7 @@ def gen_html(path, output_path):
                                          'fenced_code', WikiLinkExtension(base_url="", end_url='.md.html')])
                 _fname = pathlib.Path(output_path + '/' + f.name.replace(' ', '_') + '.html')
                 print(f"{f.absolute()} => {_fname.absolute()}")
-                _fname.write_text(html)
+                tpl_hnd(html, _fname)
         elif f.is_dir():
             os.makedirs(output_path + '/' + f.name.replace(' ', '_'), exist_ok=True)
             gen_html(f.absolute(), output_path + '/' + f.name.replace(' ', '_'))

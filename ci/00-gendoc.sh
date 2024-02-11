@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python3 -m pip install markdown
+python3 -m pip install markdown jinja2
 
 DOC_DIR="./doc"
 
