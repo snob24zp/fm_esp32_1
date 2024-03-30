@@ -1,0 +1,6 @@
+[submodule "tools/esp-idf"]
+	path = tools/esp-idf
+	url = https://github.com/espressif/esp-idf.git
+[submodule "tools/micropython_a9_gprs"]
+	path = tools/micropython_a9_gprs
+	url = git@github.com:intx82/micropython_a9_gprs.git

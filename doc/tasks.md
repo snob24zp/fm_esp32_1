@@ -14,7 +14,7 @@
 		- [x] uploading via mqtt
 		- [x] downloading from http
 		- [x] docs
-		- [ ] pyhlo - updater tool
+		- [x] pyhlo - updater tool
 	- [x] Users
 		- [x] signing messages
 		- [x] storing users
@@ -36,13 +36,13 @@
 	- [x] last-will message
 	- [ ] Server topic
 	- [ ] Documentation
-		- [ ] describe user-server-device application examples and graphs
+		- [x] describe user-server-device application examples and graphs
 		- [x] describe protocol briefly
 	- [ ] CI/CD
 		- [x] generally run CI/CD
-		- [ ] release page
+		- [x] release page
 		- [ ] windows pyinstaller
-		- [ ] generate sphinx documentation
+		- [x] generate html documentation
 	- [ ] Batch transfers
 	- [ ] Current time register (/3?)
 - [ ] update USERVER according to last changes in UCLIENT
