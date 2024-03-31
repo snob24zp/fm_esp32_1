@@ -25,14 +25,14 @@
 <body >
     <header>
         <div class="container">
-            <h3 style="margin-bottom: 0; padding-bottom: 0;">Производственная сборка {{ release }}</h3>
+            <h3 style="margin-bottom: 0; padding-bottom: 0;">CI build {{ release }}</h3>
             <p style="margin-bottom: 0; padding-bottom: 0;"><small>Commit: {{ commit }} Время: {{ tm }}</small></p>
         </div>
     </header>
     <hr>
     <main class="Main">
         <div class="container">
-            <b>Последние 5 изменений кода (commit)</b>
+            <b>Last 5 changes in the code (commits)</b>
             <ul>
                 {% for item in commits %}
                     <li>{{item[0]}}<br><small>Commit: {{item[1]}} Дата: {{item[2]}}</small></li>
@@ -42,26 +42,27 @@
 
         <div class="container">
             <blockquote>
-                <p><b>Документация</b></p>
+                <p><b>Documentation</b></p>
             </blockquote>
-            <a class="button" href="html/">Документация кода</a>
-            <a class="button" href="code-check.log">Статический анализ кода</a>
+            <a class="button" href="html/">Code documentation</a>
+            <a class="button" href="code-check.log">Static code analyze</a>
         </div>
         <hr>
         <div class="container">
             <blockquote>
-                <p><b>Прошивки</b></p>
+                <p><b>Builds</b></p>
             </blockquote>
-            <!-- <a class="button" href="#">Производственная прошивка</a> -->
-            <a class="button" href="AR.latest.uebf">Пользовательская прошивка</a>
-            <p> <i> * Производственная прошивка используется для первоначальной записи через программатор. </i></p>
+            <a class="button" href="AR.BINS.latest.zip">Initial package</a> 
+            <p> <i> * 'Initial package' should be used to flash it on new device using USB cable </i></p>
+            <a class="button" href="AR.latest.uebf">Update package</a>
+            <p> <i> * 'Update package' should be used to update device firmware to the latest version. </i></p>
         </div>
         <hr>
         <div class="container">
             <blockquote>
-                <p><b>Результат тестирования</b></p>
+                <p><b>Tests</b></p>
             </blockquote>
-            <a class="button" href="tests/">Результаты тестов</a>
+            <a class="button" href="tests/">Simulator test results</a>
             <!-- <a class="button" href="serial.log">Лог UART</a> -->
         </div>
         <hr>

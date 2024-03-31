@@ -13,3 +13,4 @@ cp ci/burn.bat out/bins/burn.bat
 
 cd out
 zip -r "AR.BINS.$RELEASE.zip" bins
+cp AR.BINS.$RELEASE.zip AR.BINS.latest.zip

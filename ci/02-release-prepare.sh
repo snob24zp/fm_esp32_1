@@ -3,6 +3,8 @@
 python3 -m pip install --break-system-packages junit2html
 
 UEBF_FW=AR.FW.latest.uebf
+BINS_FW=AR.BINS.latest.zip
+
 export CWD="/var/www/release/esp32-mpy-uclient/release-$(date +%y%m%d)"
 
 function create_releasefile {
@@ -20,6 +22,8 @@ mkdir -p "$CWD/html"
 cp artifacts/lintcheck/code-check.log "$CWD/code-check.log"
 # cp artifacts/factory-build.zip/factory-build.zip "$CWD/factory-build.zip"
 cp artifacts/$UEBF_FW/$UEBF_FW "$CWD/$UEBF_FW"
+cp artifacts/$BINS_FW/$BINS_FW "$CWD/$BINS_FW"
+
 ./ci/release-page/gen.py "R$(date +%y%m%d)" "$(git rev-parse HEAD)" $(git rev-parse --abbrev-ref HEAD) > "$CWD/index.html"
 
 create_releasefile

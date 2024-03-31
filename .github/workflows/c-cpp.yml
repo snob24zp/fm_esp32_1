@@ -45,8 +45,8 @@ jobs:
     - run: ./ci/01-build-esp32-binary.sh
     - uses: actions/upload-artifact@v2
       with:
-        name: 'binaries'
-        path: out/bins
+        name: 'AR.BINS.latest.zip'
+        path: out/bins/AR.BINS.latest.zip
   Test:
     name: 'Тестирование'
     runs-on: self-hosted
