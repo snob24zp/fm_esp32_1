@@ -127,8 +127,11 @@ def main():
                     ntptime.settime()
                 except:
                     print('Could not get update from NTP server')
-            wlan_init = net.is_connected()
+                wlan_init = net.is_connected()
 
+        if cfg.wlan_mode == 1 and not wlan_init:
+            webapp.init().run(port=80)
+            
         if wlan_init:
             start_thread(lambda: webapp.init().run(port=80), (), 8192)
 

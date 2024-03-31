@@ -3,7 +3,6 @@ import struct
 import time
 import sys
 import base64
-import disk
 
 from uclient import aes 
 from log import log
@@ -11,7 +10,7 @@ from log import log
 
 if sys.version.count('MicroPython') > 0:
     import machine
-
+    import disk
 
 class ueba_pkg:
     DEV_TYPE = 5523
