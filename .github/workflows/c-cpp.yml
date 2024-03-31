@@ -35,6 +35,18 @@ jobs:
       with:
         name: 'AR.FW.latest.uebf'
         path: out/AR.FW.latest.uebf
+  BuildBinaries:
+    name: 'Сборка ESP32 прошивки'
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - run: ./ci/01-build-esp32-binary.sh
+    - uses: actions/upload-artifact@v2
+      with:
+        name: 'binaries'
+        path: out/bins
   Test:
     name: 'Тестирование'
     runs-on: self-hosted
@@ -49,23 +61,10 @@ jobs:
       with:
         name: 'tests-summary'
         path: out/tests/
-  BuildBinaries:
-    name: 'Сборка ESP32 прошивки'
-    runs-on: self-hosted
-    needs: Build
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - run: ./ci/01-build-esp32-binary.sh
-    - uses: actions/upload-artifact@v2
-      with:
-        name: 'binaries'
-        path: out/bins
   GenDoc:
     name: 'Генерация документации'
     runs-on: self-hosted
-    needs: Build
+    needs: [Build, BuildBinaries]
     steps:
     - run: ./ci/00-gendoc.sh
     - uses: actions/upload-artifact@v2
