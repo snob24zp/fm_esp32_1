@@ -10,6 +10,7 @@ with open('./ci/release-page/index.html') as f:
     commits = []
     for c in list(repo.iter_commits(sys.argv[2], max_count=5)):
         commit_lnk = f'<a href="https://github.com/intx82/esp32-mpy-uclient/commit/{c.hexsha}">{c.hexsha}</a>'
+        author = f'<a href="mailto:{c.author.email}">{c.author.name}</a>' if c.author is not None else ' - '
         msg_wlnk = ""
         for word in c.message.split(' '):
             if word[0] == '#':
@@ -17,7 +18,7 @@ with open('./ci/release-page/index.html') as f:
             msg_wlnk += word
             msg_wlnk += ' '
 
-        commits.append([msg_wlnk, commit_lnk, datetime.datetime.fromtimestamp(c.committed_date)])
+        commits.append([msg_wlnk, commit_lnk, datetime.datetime.fromtimestamp(c.committed_date), author])
 
     print(tmpl.render( release=sys.argv[1], commit=commits[0][1], tm=datetime.datetime.now(), commits=commits))
 
