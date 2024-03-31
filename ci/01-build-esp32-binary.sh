@@ -1,6 +1,5 @@
 #!/bin/bash
 
-RELEASE="R$(date +%y%m%d)"
 
 ./tools/esp-idf/install.sh
 ./build_fw_esp32c3.sh
@@ -12,5 +11,5 @@ cp ci/burn.sh out/bins/burn.sh
 cp ci/burn.bat out/bins/burn.bat
 
 cd out
-zip -r "AR.BINS.$RELEASE.zip" bins
-cp AR.BINS.$RELEASE.zip AR.BINS.latest.zip
+zip -r "AR.BINS.latest.zip" bins
+

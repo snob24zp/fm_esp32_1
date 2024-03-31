@@ -46,7 +46,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: 'AR.BINS.latest.zip'
-        path: out/bins/AR.BINS.latest.zip
+        path: out/AR.BINS.latest.zip
   Test:
     name: 'Тестирование'
     runs-on: self-hosted
