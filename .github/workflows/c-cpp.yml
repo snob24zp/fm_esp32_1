@@ -20,7 +20,7 @@ jobs:
         name: 'lintcheck'
         path: out/code-check.log
   Build:
-    name: 'Сборка'
+    name: 'Сборка прошивки обновления'
     runs-on: self-hosted
     steps:
     - uses: actions/checkout@v2
@@ -49,6 +49,19 @@ jobs:
       with:
         name: 'tests-summary'
         path: out/tests/
+  BuildBinaries:
+    name: 'Сборка ESP32 прошивки'
+    runs-on: self-hosted
+    needs: Build
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - run: ./ci/01-build-esp32-binary.sh
+    - uses: actions/upload-artifact@v2
+      with:
+        name: 'binaries'
+        path: out/bins
   GenDoc:
     name: 'Генерация документации'
     runs-on: self-hosted
@@ -62,7 +75,7 @@ jobs:
   Release:
     name: 'Подготовка релиза'
     runs-on: self-hosted
-    needs: [Test, GenDoc, CppCheck]
+    needs: [Test, GenDoc, CppCheck, BuildBinaries]
     # if: github.event_name == 'push' && (contains(github.ref, '/heads/master') || contains(github.ref, '/tags/v')))
     steps:
       - uses: actions/checkout@v2
