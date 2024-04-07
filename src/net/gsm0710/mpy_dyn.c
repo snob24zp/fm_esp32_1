@@ -29,17 +29,15 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "py/runtime.h"
-#include "py/stream.h"
-#include "py/mperrno.h"
-#include "py/mphal.h"
-#include "py/objstr.h"
-
+#include "py/dynruntime.h"
 
 #include "gsm0710.h"
 
+#ifndef STATIC
 #define STATIC static
+#endif
 
+mp_obj_full_type_t gsm0710_type;
 
 #define container_of(ptr, type, member) ({                 \
     const __typeof__(((type *)0)->member) *__mptr = (ptr); \
@@ -194,35 +192,31 @@ STATIC mp_obj_t gsm0710_make_new(const mp_obj_type_t *type, size_t n_args, size_
     return MP_OBJ_FROM_PTR(self);
 }
 
-static const mp_rom_map_elem_t gsm0710_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_deinit), MP_ROM_PTR(&mp_gsm0710_deinit_obj) },
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_write_virtual), MP_ROM_PTR(&mp_gsm0710_write_virtual_obj) },
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_on_read_serial), MP_ROM_PTR(&mp_gsm0710_on_read_serial_obj) },
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_set_write_sl), MP_ROM_PTR(&mp_gsm0710_set_write_sl_obj) },
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_set_on_read_vl), MP_ROM_PTR(&mp_gsm0710_set_on_read_vl_obj) },
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_set_on_fault), MP_ROM_PTR(&mp_gsm0710_set_on_fault_obj) },
-};
+mp_map_elem_t gsm0710_locals_dict_table[6];
+STATIC MP_DEFINE_CONST_DICT(gsm0710_locals_dict, gsm0710_locals_dict_table);
 
-static MP_DEFINE_CONST_DICT(gsm0710_locals_dict, gsm0710_locals_dict_table);
+// This is the entry point and is called when the module is imported
+mp_obj_t mpy_init(mp_obj_fun_bc_t *self, size_t n_args, size_t n_kw, mp_obj_t *args)
+{
+    // This must be first, it sets up the globals dict and other things
+    MP_DYNRUNTIME_INIT_ENTRY
 
-static MP_DEFINE_CONST_OBJ_TYPE(
-    gsm0710_type,
-    MP_QSTR_GSM0710,
-    MP_TYPE_FLAG_NONE,
-    make_new, gsm0710_make_new,
-    locals_dict, &gsm0710_locals_dict
-    );
+    mp_store_global(MP_QSTR___name__, MP_OBJ_NEW_QSTR(MP_QSTR_gsm0710));
 
-static const mp_rom_map_elem_t gsm0710_module_globals_table[] = {
-    { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_gsm0710) },
-    { MP_ROM_QSTR(MP_QSTR_GSM0710), MP_ROM_PTR(&gsm0710_type) },
-};
+    gsm0710_type.base.type = mp_fun_table.type_type;
+    gsm0710_type.name = MP_QSTR_gsm0710_ctrl;
+    MP_OBJ_TYPE_SET_SLOT(&gsm0710_type, make_new, &gsm0710_make_new, 0);
 
-static MP_DEFINE_CONST_DICT(gsm0710_module_globals, gsm0710_module_globals_table);
+    gsm0710_locals_dict_table[0] = (mp_map_elem_t){MP_OBJ_NEW_QSTR(MP_QSTR_gsm0710_deinit), MP_OBJ_FROM_PTR(&mp_gsm0710_deinit_obj)};
+    gsm0710_locals_dict_table[1] = (mp_map_elem_t){MP_OBJ_NEW_QSTR(MP_QSTR_gsm0710_write_virtual), MP_OBJ_FROM_PTR(&mp_gsm0710_write_virtual_obj)};
+    gsm0710_locals_dict_table[2] = (mp_map_elem_t){MP_OBJ_NEW_QSTR(MP_QSTR_gsm0710_on_read_serial), MP_OBJ_FROM_PTR(&mp_gsm0710_on_read_serial_obj)};
+    gsm0710_locals_dict_table[3] = (mp_map_elem_t){MP_OBJ_NEW_QSTR(MP_QSTR_gsm0710_set_write_sl), MP_OBJ_FROM_PTR(&mp_gsm0710_set_write_sl_obj)};
+    gsm0710_locals_dict_table[4] = (mp_map_elem_t){MP_OBJ_NEW_QSTR(MP_QSTR_gsm0710_set_on_read_vl), MP_OBJ_FROM_PTR(&mp_gsm0710_set_on_read_vl_obj)};
+    gsm0710_locals_dict_table[5] = (mp_map_elem_t){MP_OBJ_NEW_QSTR(MP_QSTR_gsm0710_set_on_fault), MP_OBJ_FROM_PTR(&mp_gsm0710_set_on_fault_obj)};
 
-const mp_obj_module_t gsm0710_module = {
-    .base = { &mp_type_module },
-    .globals = (mp_obj_dict_t *)&gsm0710_module_globals,
-};
+    MP_OBJ_TYPE_SET_SLOT(&gsm0710_type, locals_dict, (void *)&gsm0710_locals_dict, 2);
 
-MP_REGISTER_MODULE(MP_QSTR_gsm0710, gsm0710_module);
+    mp_store_global(MP_QSTR_gsm0710, MP_OBJ_FROM_PTR(&gsm0710_type));
+    // This must be last, it restores the globals dict
+    MP_DYNRUNTIME_INIT_EXIT
+}

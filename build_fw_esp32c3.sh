@@ -14,6 +14,8 @@ RELEASE="R$(date +%y%m%d)"
 cd tools/micropython_a9_gprs/ports/esp32/boards/FARM_MONITOR
 rm -rf fw.tmp
 ln -s ../../../../../../bootloader fw.tmp
+rm -rf gsm0710
+ln -s ../../../../../../src/net/gsm0710 gsm0710
 cd ../../
 
 echo "Cleaning Micropython repository"

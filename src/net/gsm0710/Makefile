@@ -1,11 +1,11 @@
 # Location of top-level MicroPython directory
-MPY_DIR = $(shell realpath ~/wrk/dlab/micropython)
+MPY_DIR = $(shell realpath ../../../tools/micropython_a9_gprs)
 
 # Name of module
 MOD = gsm0710
 
 # Source files (.c or .py)
-SRC = mpy.c gsm0710.c buffer.c
+SRC = mpy_dyn.c gsm0710.c buffer.c
 
 # Architecture to build for (x86, x64, armv6m, armv7m, xtensa, xtensawin)
 ARCH ?= x64

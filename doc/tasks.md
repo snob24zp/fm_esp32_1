@@ -41,8 +41,9 @@
 	- [ ] CI/CD
 		- [x] generally run CI/CD
 		- [x] release page
-		- [ ] windows pyinstaller
+		- [ ] windows pyinstaller for simulator
 		- [x] generate html documentation
+		- [x] Generate initial firmware like installer or hex file 
 	- [ ] Batch transfers
 	- [ ] Current time register (/3?)
 - [ ] update USERVER according to last changes in UCLIENT
