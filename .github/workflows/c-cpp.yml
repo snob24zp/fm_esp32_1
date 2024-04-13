@@ -47,6 +47,18 @@ jobs:
       with:
         name: 'AR.BINS.latest.zip'
         path: out/AR.BINS.latest.zip
+  PackSources:
+    name: 'Упаковка исходников'
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - run: ./ci/01-create-source-pack.sh
+    - uses: actions/upload-artifact@v2
+      with:
+        name: 'AR.src.tar.gz'
+        path: out/AR.src.tar.gz
   Test:
     name: 'Тестирование'
     runs-on: self-hosted
@@ -74,8 +86,7 @@ jobs:
   Release:
     name: 'Подготовка релиза'
     runs-on: self-hosted
-    needs: [Test, GenDoc, CppCheck, BuildBinaries]
-    # if: github.event_name == 'push' && (contains(github.ref, '/heads/master') || contains(github.ref, '/tags/v')))
+    needs: [Test, GenDoc, CppCheck, BuildBinaries, PackSources]
     steps:
       - uses: actions/checkout@v2
         with:

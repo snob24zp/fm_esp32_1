@@ -195,12 +195,12 @@ STATIC mp_obj_t gsm0710_make_new(const mp_obj_type_t *type, size_t n_args, size_
 }
 
 static const mp_rom_map_elem_t gsm0710_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_deinit), MP_ROM_PTR(&mp_gsm0710_deinit_obj) },
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_write_virtual), MP_ROM_PTR(&mp_gsm0710_write_virtual_obj) },
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_on_read_serial), MP_ROM_PTR(&mp_gsm0710_on_read_serial_obj) },
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_set_write_sl), MP_ROM_PTR(&mp_gsm0710_set_write_sl_obj) },
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_set_on_read_vl), MP_ROM_PTR(&mp_gsm0710_set_on_read_vl_obj) },
-    { MP_ROM_QSTR(MP_QSTR_gsm0710_set_on_fault), MP_ROM_PTR(&mp_gsm0710_set_on_fault_obj) },
+    { MP_ROM_QSTR(MP_QSTR_deinit), MP_ROM_PTR(&mp_gsm0710_deinit_obj) },
+    { MP_ROM_QSTR(MP_QSTR_write_virtual), MP_ROM_PTR(&mp_gsm0710_write_virtual_obj) },
+    { MP_ROM_QSTR(MP_QSTR_on_read_serial), MP_ROM_PTR(&mp_gsm0710_on_read_serial_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_write_sl), MP_ROM_PTR(&mp_gsm0710_set_write_sl_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_on_read_vl), MP_ROM_PTR(&mp_gsm0710_set_on_read_vl_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_on_fault), MP_ROM_PTR(&mp_gsm0710_set_on_fault_obj) },
 };
 
 static MP_DEFINE_CONST_DICT(gsm0710_locals_dict, gsm0710_locals_dict_table);

@@ -51,7 +51,6 @@ typedef struct _gsm0710_obj_t
     mp_obj_t _write_sl_cb;
     mp_obj_t _on_fault_cb;
     mp_obj_t _on_read_vl_cb;
-
 } gsm0710_obj_t;
 
 STATIC mp_obj_t gsm0710_set_on_fault(mp_obj_t self_in, mp_obj_t cb)
