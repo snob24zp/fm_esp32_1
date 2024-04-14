@@ -57,8 +57,8 @@ jobs:
     - run: ./ci/01-create-source-pack.sh
     - uses: actions/upload-artifact@v2
       with:
-        name: 'AR.src.tar.gz'
-        path: out/AR.src.tar.gz
+        name: 'AR.src.latest.zip'
+        path: out/AR.src.latest.zip
   Test:
     name: 'Тестирование'
     runs-on: self-hosted
