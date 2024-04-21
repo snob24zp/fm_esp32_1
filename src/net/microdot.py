@@ -27,9 +27,39 @@ try:  # pragma: no cover
         # use the threading module
         threading.Thread(target=f, args=args, kwargs=kwargs).start()
 except ImportError:  # pragma: no cover
-    def create_thread(f, *args, **kwargs):
-        # no threads available, call function synchronously
-        f(*args, **kwargs)
+    # import threadmpy
+    # import heapq
+
+    # _thread_started = False
+    # _task_q = []
+
+    def create_thread(f, *args):
+        # global _task_q, _thread_started
+
+        # def _q():
+        #     global _thread_started
+        #     _thread_started = True
+        #     while True:
+        #         try:
+        #             _f = heapq.heappop(_task_q)
+        #             print("send --> ")
+        #             _f[0](*_f[1])
+        #             print("--< send")
+        #         except IndexError:
+        #             pass
+        #         except Exception as ex:
+        #             print(ex)
+
+        # if not _thread_started:
+        #     print('--- Create thread: ', f)
+        #     heapq.heapify(_task_q)
+        #     heapq.heappush(_task_q, (f, args))
+        #     threadmpy.start_thread(_q, (),  thread_stack=8192)
+        # else:
+        #     print('--- Push to Q: ', f)
+        #     heapq.heappush(_task_q, (f, args))
+
+        f(*args)
 
     concurrency_mode = 'sync'
 
@@ -310,7 +340,7 @@ class Request():
     #: 0 to disable the use of a timeout. This timeout should be considered a
     #: suggestion only, as some platforms may not support it. The default is
     #: 1 second.
-    socket_read_timeout = 1
+    socket_read_timeout = None
 
     class G:
         pass
@@ -602,34 +632,35 @@ class Response():
 
     def write(self, stream):
         self.complete()
-
+        ret = bytearray()
         # status code
         reason = self.reason if self.reason is not None else \
             ('OK' if self.status_code == 200 else 'N/A')
-        stream.write('HTTP/1.0 {status_code} {reason}\r\n'.format(
+        ret.extend('HTTP/1.0 {status_code} {reason}\r\n'.format(
             status_code=self.status_code, reason=reason).encode())
 
         # headers
         for header, value in self.headers.items():
             values = value if isinstance(value, list) else [value]
             for value in values:
-                stream.write('{header}: {value}\r\n'.format(
+                ret.extend('{header}: {value}\r\n'.format(
                     header=header, value=value).encode())
-        stream.write(b'\r\n')
+
+        ret.extend(b'\r\n')
 
         # body
         if not self.is_head:
-            can_flush = hasattr(stream, 'flush')
             try:
                 for body in self.body_iter():
                     if isinstance(body, str):  # pragma: no cover
                         body = body.encode()
-                    stream.write(body)
-                    if can_flush:  # pragma: no cover
-                        stream.flush()
+                    ret.extend(body)
+
+                stream.write(ret)
+
             except OSError as exc:  # pragma: no cover
                 if exc.errno in MUTED_SOCKET_ERRORS:
-                    pass
+                    print('--- error: ', exc)
                 else:
                     raise
 
@@ -1088,6 +1119,7 @@ class Microdot():
             print('Starting {mode} server on {host}:{port}...'.format(mode=concurrency_mode, host=host, port=port))
 
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # self.server.setsockopt(socket.IPPROTO_TCP, 1, 1);
         self.server.bind(addr)
         self.server.listen(5)
 
