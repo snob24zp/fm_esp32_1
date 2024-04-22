@@ -18,7 +18,7 @@ class fwupd_device(event_device, fwupd):
         super().__init__(serial, dtype, regs, status, device_id)
         super(device_base, self).__init__()
         self.dl_run = 0
-        
+
     def dl(self, url, topic):
         resp = mrequests.get(url)
         self.info(f"Resp: {url} -> {resp.status_code}")
@@ -106,12 +106,12 @@ class fwupd_device(event_device, fwupd):
                             break
             except OSError as ex:
                 self.err(str(ex))
-            
+
             if not allow:
                 self.err('Downloading FW-Update is forbiden')
                 return
-            
+
             self.dl_run = 1
-            start_thread(self.dl_thr, (topic, msg), 10240)
+            start_thread(self.dl_thr, (topic, msg), thread_stack=10240)
 
         return super().hnd_msg(topic, msg)
