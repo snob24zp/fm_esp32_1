@@ -35,7 +35,7 @@ class HUB(log):
     REG_DONE = 2           # Регистрация выполнена успешна
     REG_BLOCKED = 5        # Сервер запретил выполнения данного клиента
 
-    VERSION = STATIC_VERSION     # Версия эмулятора
+    VERSION = STATIC_VERSION     # FW Version эмулятора
 
     def __init__(self, server, token, devices, username=None, password=None):
         '''
@@ -54,7 +54,7 @@ class HUB(log):
             ["ping", self.__ping_hnd, '>'],
             ["version", self.__version_hnd, '>']
         ]
-        
+
         self.root_hnd = [
             (">hub", self.__hub_topic_hnd),
         ]
@@ -150,7 +150,7 @@ class HUB(log):
         self.info("Ping command")
         if str(value) == 'ping':
             self.pub_hub("ping", "OK")
-    
+
     def __version_hnd(self, value):
         '''
         Обработчик /{hub}/version
@@ -233,8 +233,8 @@ class HUB(log):
     def register_hub_cb(self, topic, cb):
         if callable(cb):
             self.root_hub_hnd.append((topic, cb, '>'))
-            
-    
+
+
     def register_root_cb(self, topic, cb):
         if callable(cb):
             self.root_hnd.append((topic, cb))
@@ -294,7 +294,7 @@ class HUB(log):
             self.dereg()
         except Exception as ex:
             self.err(ex)
-            
+
         finally:
             gc.collect()
 
@@ -385,10 +385,10 @@ class HUB(log):
         while True:
             try:
                 if len(h) == 1:
-                    self.client.connect(h[0], port=port, 
+                    self.client.connect(h[0], port=port,
                                         user=self.username, password=self.password, use_ssl=use_ssl)
                 elif len(h) == 2:
-                    self.client.connect(h[0], port=int(h[1]), 
+                    self.client.connect(h[0], port=int(h[1]),
                                         user=self.username, password=self.password, use_ssl=use_ssl)
                 break
             except OSError:

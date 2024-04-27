@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Настройка подключения</title>
+    <title>WI-FI connection setup</title>
     <link rel="stylesheet" media="all" href="style.css" />
     <script type="text/javascript" src="main.js"></script>
     <script type="text/javascript">
@@ -33,15 +33,15 @@
 <body>
     <div class="flexbox-panel">
         <div class="flex-item box1 menu" id="menu-box">
-            <p><a href="index.html">Настройка WIFI</a></p>
-            <p><a href="fw.html">Обновление прошивки</a></p>
-            <p><a href="ip.html">Установка IP</a></p>
+            <p><a href="index.html">WI-FI connection setup</a></p>
+            <p><a href="fw.html">Firmware update</a></p>
+            <p><a href="ip.html">IP address configuration</a></p>
         </div>
         <div class="flex-item box1 main" id="main-box">
             <div class="title">
 
                 <div class="wifi">
-                    <h2>Настройка подключения WIFI</h2>
+                    <h2>WI-FI connection setup WIFI</h2>
                 </div>
                 <div class="img">
                     <img src="data:image/gif;base64,R0lGODlhYgBiAMQQAH9/fxAQEO/v70BAQL+/v6+vr2BgYN/f3yAgIM/Pz5+fn1BQUI+PjzAwMHBwcAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAABiAGIAAAX/ICSOZGmeaKqubOu+cCzPdG3feK7vdTIMC4AQUCAkeMgk4cFsOh+BgQFAECSvs+Vz+0QsGASseCUgEBRDxy/AdQa+h7H8lSAAFo32o+E4zv8tdgtsWwgMcYCJKgkAeVsLBYqSKAcMA4UAVpObI5UITwEOiJycBAZbBqOkkwIAhE2Zq5wCCp9NAQyypLVOCGG6rK5OC5rAigKnt5HGkgmOTMTMkgyvAb/SgAeXsNiKDE4Dxd1yCbYPCH7jcgILtwrqf99N7/ByBa8G9eTm+fpiAs/6zRlCxYwugE0EjmkTxQCYTQK2PVCIRc8TPtcAJZsoZ4iBH+a4vKH3RyLFP3Xu/4S8ZSAjFoRMcpE6oMDAqyYNSL58ppNUAZugYr20FSCdrgLt3AAQk4AQAnG6Dji4iWCZkiYDurW6OUDVDnkPlmoFoPRK0gcumWkD5xUHzABQpd1ThiRBkwX12DlxgASsVXVzmYTjsQ2uvgPPGrStcYAQXn3Ibhm9ATbtOLJMiu7YhsCfCAWSddhlItYf6MyTazjIHFfdaSiLZQggxNczhNcNWsvA/CD2uNdZc9g6WY937RuvfY/b+LfG8BkHhhTRneStchevqafQ4mYAFTmNBQsnLYO7yJZiCnC7gTmAjOgA1DzrwkB7jaQBrrOYzaTnjAQMDBKUfbIREpwNyRyYw/9PXTSHg3pMOBjDaL0hsdUwBMLAGQ6OlMbDhZlJSMMB69UgT2dYrFUiDqtBkWEKAjSRGg8K4KMDf2HdkNRxWDiTkA7tIccEimNE9KNbhPgHQ4xMzJjERsTJ0GIDN2wj0xwbeThiE5a9II+CckgkIgxJRekChYm89WIKELpnAyFdXtEUNDgQMmYLSWkph183JGNmC19KwtmaJ7RpgxZuJhJejm8yEWcLTeiHRHuEmpAMjzJsc+cVOF45w2lgxpCMngMNaQOJTNggz2PHcNkoWjVoESoKCqgxgANKwuCnDUl5GgOqD7BQwEpQbKqCoTVg9icLTWj3Ghe5tgBnDRDO+oK0LXFCCIUDBRQwVRPGopBnD5nZsE2ctihGAmKmzhBoDU3wGhMKbba1aLSLlFsDIU62gBmpECiLQouYvtBsDecmS94JmtIr3gyOPLpCwjT8i0LDhT6cqaM1jFoDqCgIfALBNLQIsL8LZ6FxCdqmtmi4J1hcccrlrVxCukaxe47CjM4gs8oPWAuBeQYoUNMrMJ9wgBmS/mNGv7dZhK9tLxBAbFVU71AAAD8QkfXXYIct9thkmxACADs="
@@ -53,13 +53,13 @@
                 <table class="box3">
                     <tr class="box2">
                         <td>
-                            <p>Название WIFI</p>
+                            <p>WI-FI Access point name</p>
                         </td>
                         <td><input type="text" maxlength=32 name="ap" required id="ap-name-box" /></td>
                     </tr>
                     <tr class="box2">
                         <td>
-                            <p>Пароль</p>
+                            <p>Password</p>
                         </td>
 
                         <td>
@@ -73,7 +73,7 @@
                 </table>
 
                 <button class="subbut" onclick="send_ctrl()">
-                    <p class="buttext">Подключить</p>
+                    <p class="buttext">Connect</p>
                 </button>
             </form>
             <div class="list">
@@ -90,13 +90,13 @@
                         </td>
                     </tr>
                     <tr>
-                        <td align="right"> Серийный номер:</td>
+                        <td align="right"> Device serial:</td>
                         <td>
                             <div id="serial"> - </div>
                         </td>
                     </tr>
                     <tr>
-                        <td align="right">Версия:</td>
+                        <td align="right">FW Version:</td>
                         <td>
                             <div id="ver"> - </div>
                         </td>

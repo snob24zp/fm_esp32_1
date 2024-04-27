@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="utf-8">
-    <title>Обновление ПО</title>
+    <title>Firmware update</title>
     <link rel="stylesheet" media="all" href="style.css" />
     <script type="text/javascript" src="main.js"></script>
     <script type="text/javascript">
@@ -24,15 +23,15 @@
 <body>
     <div class="flexbox-panel">
         <div class="flex-item box1 menu" id="menu-box">
-            <p><a href="index.html">Настройка WIFI</a></p>
-            <p><a href="fw.html">Обновление прошивки</a></p>
-            <p><a href="ip.html">Установка IP</a></p>
+            <p><a href="index.html">WI-FI connection setup</a></p>
+            <p><a href="fw.html">Firmware update</a></p>
+            <p><a href="ip.html">IP address configuration</a></p>
         </div>
         <div class="flex-item main">
             <div class="box1 main" id="main-box">
                 <div class="title">
                     <div class="wifi">
-                        <h2>Обновление ПО устройства</h2>
+                        <h2>Firmware update</h2>
                     </div>
                     <div class="img">
                         <img src=" data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAABmJLR0QA/wD/AP+gvaeTAAABH0lEQVRoge2ZWwrCMBBFDyLuyboBxXX5Wpe6EW27DPXDlPoIrYlNM03nwBBoGLiXaSdlAiPmDBwj7nfG3USsfSsT1wSpJGNkFMyAA1BSv7exogB2RpMzewEGPmPrY6QwyXOf5I7JqCvjjFcbDEijnmS6lquRNZADV2DVvZz/OfP+UYG9lNeX55fe1H3redV6groit55FdUmrdltFVjyrcgGWAUS56gmbGAjtWoNCjUijMmI7RySj54gEtP0OCjUijeSM6DkiAD1HRKJGpKFGAvH33OzXuVZomuZmOteKUZGmuZnOtQZFk5HSrFkfQlpYmNXromdH/Ku2z9j4GJkZM9UVXMzIjQmvy9DkaetmofetjKJrDYqpR071XxZrP20eUscOAdrCjPcAAAAASUVORK5CYII="
@@ -43,19 +42,19 @@
                 <div class="fw_tbl">
                     <table>
                         <tr>
-                            <td>MAC адрес:</td>
+                            <td>MAC Address:</td>
                             <td id="mac"></td>
                         </tr>
                         <tr>
-                            <td>Серийный номер:</td>
+                            <td>Device serial:</td>
                             <td id="serial"></td>
                         </tr>
                         <tr>
-                            <td>Тип устройства:</td>
+                            <td>Device type:</td>
                             <td id="fw_cur_type"></td>
                         </tr>
                         <tr>
-                            <td>Текущая версия:</td>
+                            <td>Current FW Version:</td>
                             <td id="fw_cur_ver"></td>
                         </tr>
                         <tr>
@@ -72,7 +71,7 @@
 
                 <div class="steps">
                     <div id="upload_file">
-                        <h4>Открытие файла обновления ПО</h4>
+                        <h4>Open firmware udpate package</h4>
                         <form id="upload_file_frm">
                             <label class="fw_but subbut">
                                 <input type="file" onchange="file_select(this)" style="display: None;" />
@@ -81,19 +80,19 @@
                         </form>
                     </div>
                     <div id="fw_info" style="display: none;">
-                        <h4>Информация о файле обновления ПО</h4>
+                        <h4>Information about FW update package</h4>
                         <div id="fw_info_frm" class="fw_tbl">
                             <table>
                                 <tr>
-                                    <td>Время:</td>
+                                    <td>Build time:</td>
                                     <td id="fw_new_built"></td>
                                 </tr>
                                 <tr>
-                                    <td>Устройство:</td>
+                                    <td>Device:</td>
                                     <td id="fw_new_type"></td>
                                 </tr>
                                 <tr>
-                                    <td>Версия прошивки:</td>
+                                    <td>FW Version:</td>
                                     <td id="fw_new_ver"></td>
                                 </tr>
                                 <tr>
@@ -106,30 +105,29 @@
                                 </tr>
                             </table>
                             <button class="subbut" onclick="push_fw()">
-                                <p class="buttext">Записать</p>
+                                <p class="buttext">Burn</p>
                             </button>
                         </div>
                     </div>
 
                     <div id="write_status" style="display: none;">
-                        <h4>Запись прошивки</h4>
+                        <h4>Burning firmware..</h4>
                         <div style="text-align: center;">
                             <progress max="100" value="0" style="width: 320px;" id="fw_upl_prg"></progress>
-                            <p>Загружено на <span id="fw_upl_prg_lbl">0</span>%</p>
-                            <p><b>Во избежание неисправности устройства - не отключайте устройство из сети</b></p>
+                            <p>Load:  <span id="fw_upl_prg_lbl">0</span>%</p>
+                            <p><b>To avoid device firmware damage, please, DO NOT POWER OFF the device.</b></p>
                         </div>
                     </div>
                     <div id="reboot_status" style="display: none;">
                         <h4>Перезагрузка устройства</h4>
                         <div style="text-align: center;">
-                            <p><b>Во избежание неисправности устройства - не отключайте устройство из сети. Страница
-                                    обновится автоматически</b></p>
+                            <p><b>To avoid device firmware damage, please, DO NOT POWER OFF the device. Page will be refreshed automaticaly</b></p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="box1 main" style="margin-top: 8px;" id="rst-box">
-                <p><a class="rstlnk" href="#" onclick="rst()">Сбросить к заводским параметрам</a></p>
+                <p><a class="rstlnk" href="#" onclick="rst()">Reset to default configuration</a></p>
             </div>
         </div>
     </div>

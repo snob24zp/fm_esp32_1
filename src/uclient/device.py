@@ -21,7 +21,7 @@ except ImportError:
 
 
 class device_base(log):
-    DEVICE_TYPE = const(1)     # Тип устройства
+    DEVICE_TYPE = const(1)     # Device type
 
     def __init__(self, serial, dtype=DEVICE_TYPE, regs={}, status=0):
         log.__init__(self, f'DEV-{serial}')
@@ -38,7 +38,7 @@ class device_base(log):
     @log.dbg_wr
     def set_hub(self, hub):
         self._hub = hub
-    
+
     def pub_dev(self, topic, value):
         if self._hub is not None:
             ret = json.dumps(value)
@@ -63,7 +63,7 @@ class device_base(log):
         self.info(f'Device {self.serial} registration on the server @ {tm}')
         self.regs[1] = tm
         self._hub.subscribe_hub(f'{self.serial}/#',">")
-    
+
     @log.dbg_wr
     def hnd_msg(self, topic, msg):
         if self.on_change_reg(topic, msg):

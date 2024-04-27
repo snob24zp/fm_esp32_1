@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Настройка IP параметров</title>
+    <title>IP address configuration</title>
     <link rel="stylesheet" media="all" href="style.css" />
     <script type="text/javascript" src="main.js"></script>
     <script type="text/javascript">
@@ -29,15 +29,15 @@
 <body>
     <div class="flexbox-panel">
         <div class="flex-item box1 menu" id="menu-box">
-            <p><a href="index.html">Настройка WIFI</a></p>
-            <p><a href="fw.html">Обновление прошивки</a></p>
-            <p><a href="ip.html">Установка IP</a></p>
+            <p><a href="index.html">WI-FI connection setup</a></p>
+            <p><a href="fw.html">Firmware update</a></p>
+            <p><a href="ip.html">IP address configuration</a></p>
         </div>
 
         <div class="flex-item main box1" id="main-box">
             <div class="title">
                 <div class="wifi">
-                    <h2>Настройка IP параметров</h2>
+                    <h2>IP address configuration</h2>
                 </div>
                 <div class="img">
                     <img
@@ -55,15 +55,15 @@
                         </td>
                         <td>
                             <select id="ip_type" onchange="lock_staticbox()">
-                                <option value="static">Статический IP адрес</option>
-                                <option value="dhcp">DHCP (Автоматическое получение адреса)</option>
+                                <option value="static">Static IP address</option>
+                                <option value="dhcp">DHCP (Automatic address assign)</option>
                             </select>
                         </td>
                     </tr>
 
                     <tr class="box2">
                         <td>
-                            <p>IP адрес</p>
+                            <p>IP Address</p>
                         </td>
                         <td><input type="text" minlength="7" maxlength="15" size="15"
                                 pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
@@ -71,7 +71,7 @@
                     </tr>
                     <tr class="box2">
                         <td>
-                            <p>Маска подсети</p>
+                            <p>Network Mask</p>
                         </td>
                         <td><input type="text" minlength="7" maxlength="15" size="15"
                                 pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
@@ -79,7 +79,7 @@
                     </tr>
                     <tr class="box2">
                         <td>
-                            <p>Шлюз</p>
+                            <p>Gateway</p>
                         </td>
                         <td><input type="text" minlength="7" maxlength="15" size="15"
                                 pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
@@ -96,12 +96,12 @@
                 </table>
 
                 <button class="subbut" onclick="send_ctrl()">
-                    <p class="buttext">Изменить</p>
+                    <p class="buttext">Change</p>
                 </button>
             </form>
 
             <div class="info">
-                <p><a href="fw.html">Обновление прошивки</a></p>
+                <p><a href="fw.html">Firmware update</a></p>
                 <table style="font-size: 10pt; color: #666;">
                     <tr>
                         <td align="right">MAC:</td>
@@ -110,13 +110,13 @@
                         </td>
                     </tr>
                     <tr>
-                        <td align="right"> Серийный номер:</td>
+                        <td align="right"> Device serial:</td>
                         <td>
                             <div id="serial"> - </div>
                         </td>
                     </tr>
                     <tr>
-                        <td align="right">Версия:</td>
+                        <td align="right">FW Version:</td>
                         <td>
                             <div id="ver"> - </div>
                         </td>
