@@ -15,7 +15,7 @@ except ImportError:
 
 class config_t(json_object):
     DEFAULT_BROKER = {'host': 'x.ks.ua', 'port': 1883}  # broker address
-    DEFAULT_TOKEN = '48:3f:da:55:07:5b'
+    DEFAULT_TOKEN = '48:3f:da:55:07:5c'
     DEFAULT_SERIAL = 3996365522
     DEFAULT_USER = "admin@admin.com"
     DEFAULT_PASSWORD = "11223344"
