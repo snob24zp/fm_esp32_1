@@ -29,7 +29,7 @@ try:  # pragma: no cover
         # use the threading module
         threading.Thread(target=f, args=args, kwargs=kwargs).start()
 except ImportError:  # pragma: no cover
-    # import threadmpy
+    import threadmpy
     # import heapq
 
     # _thread_started = False
@@ -56,14 +56,19 @@ except ImportError:  # pragma: no cover
         #     print('--- Create thread: ', f)
         #     heapq.heapify(_task_q)
         #     heapq.heappush(_task_q, (f, args))
-        #     threadmpy.start_thread(_q, (),  thread_stack=8192)
+        try:
+            threadmpy.start_thread(f, args,  thread_stack=6144)
+        except OSError:
+            # print('-- SKIP creating thread')
+            f(*args)
+        finally:
+            gc.collect()
         # else:
         #     print('--- Push to Q: ', f)
         #     heapq.heappush(_task_q, (f, args))
-        gc.collect()
-        f(*args)
+        # f(*args)
 
-    concurrency_mode = 'sync'
+    # concurrency_mode = 'sync'
 
 try:
     import ujson as json
@@ -1079,7 +1084,7 @@ class Microdot():
         """
         raise HTTPException(status_code, reason)
 
-    def run(self, host='0.0.0.0', port=5000, debug=True, ssl=None):
+    def run(self, host='0.0.0.0', port=5000, debug=False, ssl=None):
         """Start the web server. This function does not normally return, as
         the server enters an endless listening loop. The :func:`shutdown`
         function provides a method for terminating the server gracefully.
