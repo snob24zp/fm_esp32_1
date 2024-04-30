@@ -22,18 +22,13 @@ class mqtt_transport(transport, log):
     def __init__(self, name: str) -> None:
         transport.__init__(self, name)
         log.__init__(self, 'MQTT')
-        
+
         self._lw = None
         self.client = None
         self.host = 'x.ks.ua'
         self.port = 1883
-        if sys.version.count('MicroPython') > 0:
-            self.lock = _thread.allocate_lock()
-        else:
-            self.lock = Lock()
-
         self.__subscribers = {}
-    
+
     @log.dbg_wr
     def connect(self, host: str, port: int = 1883, user = None, password = None, use_ssl = False) -> None:
         '''Connect to the broker
@@ -45,7 +40,7 @@ class mqtt_transport(transport, log):
         self.host = host
         self.port = port
 
-        self.client = MQTTClient(self.name, host, port, 
+        self.client = MQTTClient(self.name, host, port,
                                     keepalive=60, user=user, password=password, ssl=use_ssl)
         if self._lw is not None:
             self.client.set_last_will(self._lw[0], self._lw[1], qos=1)
@@ -56,7 +51,7 @@ class mqtt_transport(transport, log):
         for t in self.__subscribers.keys():
             self.info(f'Subscribe to {t}')
             self.client.subscribe(t)
-        
+
         if callable(self.__on_connect_cb):
             self.__on_connect_cb()
 
@@ -65,8 +60,7 @@ class mqtt_transport(transport, log):
     def publish(self, topic: str, value: bytes, qos: int = 0) -> None:
         '''Publish message'''
         if self.client is not None:
-            with self.lock:
-                self.client.publish(topic, msg=str(value), qos=qos)
+            self.client.publish(topic, msg=str(value), qos=qos)
 
     @log.dbg_wr
     def subscribe(self, topic: str, callback: object) -> None:
@@ -161,7 +155,7 @@ def test():
     mq.connect('x.ks.ua')
     mq.subscribe('/00:11:22:33:44:55/#', lambda topic, val: print(f'A: {topic} -> {val}'))
     mq.subscribe('/topic_b/#', lambda topic, val: print(f'B: {topic} -> {val}'))
-    
+
     _pub_time = time.ticks_ms()
     while(True):
         if time.ticks_ms() > (_pub_time + 10000):
@@ -169,7 +163,7 @@ def test():
             _pub_time = time.ticks_ms()
 
         mq.step()
-        
+
 
 if __name__ == '__main__':
     test()

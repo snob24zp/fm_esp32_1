@@ -10,7 +10,7 @@ def start_thread(cb, args, kwargs = {}, thread_stack = 12288):
         _thread.stack_size(thread_stack)
         _thread.start_new_thread(cb, args)
     else:
-        _th = threading.Thread(target=cb, name=f"{cb.__name__}-thread", daemon=True, args=args, kwargs=kwargs)
+        _th = threading.Thread(target=cb, name=f"{cb.__name__}-thread", daemon=True, args = args)
         _th.start()
 
 

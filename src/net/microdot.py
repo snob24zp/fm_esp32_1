@@ -18,6 +18,8 @@ try:
 except ImportError:
     import errno
 
+import gc
+
 concurrency_mode = 'threaded'
 
 try:  # pragma: no cover
@@ -58,7 +60,7 @@ except ImportError:  # pragma: no cover
         # else:
         #     print('--- Push to Q: ', f)
         #     heapq.heappush(_task_q, (f, args))
-
+        gc.collect()
         f(*args)
 
     concurrency_mode = 'sync'
@@ -314,7 +316,7 @@ class Request():
     #: Example::
     #:
     #:    Request.max_content_length = 1 * 1024 * 1024  # 1MB requests allowed
-    max_content_length = 16 * 1024
+    max_content_length = 8 * 1024
 
     #: Specify the maximum payload size that can be stored in ``body``.
     #: Requests with payloads that are larger than this size and up to
@@ -325,7 +327,7 @@ class Request():
     #: Example::
     #:
     #:    Request.max_body_length = 4 * 1024  # up to 4KB bodies read
-    max_body_length = 16 * 1024
+    max_body_length = 8 * 1024
 
     #: Specify the maximum length allowed for a line in the request. Requests
     #: with longer lines will not be correctly interpreted. Applications can
@@ -1077,7 +1079,7 @@ class Microdot():
         """
         raise HTTPException(status_code, reason)
 
-    def run(self, host='0.0.0.0', port=5000, debug=False, ssl=None):
+    def run(self, host='0.0.0.0', port=5000, debug=True, ssl=None):
         """Start the web server. This function does not normally return, as
         the server enters an endless listening loop. The :func:`shutdown`
         function provides a method for terminating the server gracefully.

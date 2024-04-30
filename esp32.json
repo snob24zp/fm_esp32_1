@@ -3,10 +3,10 @@
         "import": "hw.esp32.wlan",
         "type": "WLAN"
     },
-    "ble" : {
-          "import": "hw.esp32.ble",
-          "type": "BLEUART"
-    },
+    // "ble" : {
+    //       "import": "hw.esp32.ble",
+    //       "type": "BLEUART"
+    // },
     "uplink": {
         "import": "hw.esp32.uart_link",
         "type": "uart_link",
@@ -24,7 +24,7 @@
                 "import": "machine",
                 "type": "Pin",
                 "id": 20
-            }, 
+            },
             "timeout": 10,
             "timeout_char": 1
         }

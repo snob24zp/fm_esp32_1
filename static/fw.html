@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Firmware update</title>
     <link rel="stylesheet" media="all" href="style.css" />
-    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript" src="fw.js"></script>
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", () => {
             get("/info", (info) => {
@@ -75,7 +75,7 @@
                         <form id="upload_file_frm">
                             <label class="fw_but subbut">
                                 <input type="file" onchange="file_select(this)" style="display: None;" />
-                                Открыть
+                                Open
                             </label>
                         </form>
                     </div>
@@ -119,7 +119,7 @@
                         </div>
                     </div>
                     <div id="reboot_status" style="display: none;">
-                        <h4>Перезагрузка устройства</h4>
+                        <h4>Device reboot</h4>
                         <div style="text-align: center;">
                             <p><b>To avoid device firmware damage, please, DO NOT POWER OFF the device. Page will be refreshed automaticaly</b></p>
                         </div>

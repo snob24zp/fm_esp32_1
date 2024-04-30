@@ -18,6 +18,7 @@ from uclient.hub import HUB
 from threadmpy import start_thread
 
 device = None
+hub = None
 
 class uart_device(fwupd_device):
     def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
@@ -92,8 +93,8 @@ class uart_device(fwupd_device):
 
 
 def main():
-    global device
-    log.set_log_lvl(log.INFO)
+    global device, hub
+    log.set_log_lvl(log.DEBUG)
     cfg = config_t()
     print(f'Current config: {cfg.json()}')
     if sys.version.count('MicroPython') > 0:
@@ -145,12 +146,10 @@ def main():
             hub = HUB(cfg.server, cfg.token, [device], _usr, _pwd)
             hub.connect()
 
-            def dev_step_thread():
-                nonlocal hub
-                while hub.is_connected:
-                    hub.step()
-            dev_step_thread()
+            while hub.is_connected:
+                hub.step()
 
+            machine.reset()
     else:
         banner = '''Set register from shell: device.set_reg(num, value)
 
@@ -162,14 +161,19 @@ Connect to the Serial terminal at /tmp/uart
         hub = HUB(cfg.server, cfg.token, [device], _usr, _pwd)
         hub.connect()
 
+        def webapp_run():
+            webapp.init().run(port=3000)
+
         def dev_step_thread():
-            nonlocal hub
+            global hub
             while hub.is_connected:
                 hub.step()
 
-        start_thread(lambda: webapp.init().run(port=3000), (), 128 * 1024)
-        start_thread(lambda: dev_step_thread(), (), 128 * 1024)
+        start_thread(webapp_run, (), 8 * 1024)
+        start_thread(dev_step_thread, (), 8 * 1024)
+
         code.interact(banner, local=locals())
+        #dev_step_thread()
 
 
 if __name__ == '__main__':

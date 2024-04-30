@@ -25,7 +25,6 @@ from version import STATIC_VERSION
 from uclient.mqtt_transport import mqtt_transport as mqtt
 from uclient.device import device_base
 
-
 class HUB(log):
     '''
     Класс клиента
@@ -82,6 +81,7 @@ class HUB(log):
         self.lifetime = 3
         self.pub_tmr = ticks_ms()
 
+    @log.dbg_wr
     def pub(self, topic, value):
         if self.state == self.REG_DONE:
             self.pub_hub(topic, value)
@@ -89,6 +89,7 @@ class HUB(log):
             return True
         return False
 
+    @log.dbg_wr
     def pub_hub(self, topic, value, prefix='<'):
         '''
         Отправляет данные в указанный топик с префиксом хаба
@@ -96,6 +97,7 @@ class HUB(log):
         self.info(f"Publish message: {{ topic: {topic}, value: {value} }}")
         self.client.publish(f"{prefix}{self.token}/{topic}", value)
 
+    @log.dbg_wr
     def subscribe_hub(self, topic, prefix="/"):
         '''
         Подписывается на топик хаба
@@ -104,6 +106,7 @@ class HUB(log):
         self.info(f"(HUB) Subscribe to : {{topic: {topic} }}")
         self.client.subscribe(topic, self.__on_message)
 
+    @log.dbg_wr
     def __time_hnd(self, value):
         '''
         Обработчик /{hub}/time
@@ -116,6 +119,7 @@ class HUB(log):
             for dev in self.devices:
                 dev.register(tm)
 
+    @log.dbg_wr
     def __lifetime_hnd(self, value):
         '''
         Обработчик /{hub}/lifetime
@@ -123,6 +127,7 @@ class HUB(log):
         self.info(f"Set new lifetime: {value}")
         self.lifetime = int(value)
 
+    @log.dbg_wr
     def __error_hnd(self, value):
         '''
         Обработчик /{hub}/error
@@ -143,6 +148,7 @@ class HUB(log):
         if int(value) == 4:
             self.events_disable = True
 
+    @log.dbg_wr
     def __ping_hnd(self, value):
         '''
         Обработчик /{hub}/ping
@@ -151,6 +157,7 @@ class HUB(log):
         if str(value) == 'ping':
             self.pub_hub("ping", "OK")
 
+    @log.dbg_wr
     def __version_hnd(self, value):
         '''
         Обработчик /{hub}/version
@@ -158,14 +165,16 @@ class HUB(log):
         if str(value) == 'version':
             self.pub_hub("version", HUB.VERSION)
 
+    @log.dbg_wr
     def __send_reg(self):
         '''
         Отправляет {hub} на регистрацию
         '''
         if self.is_connected:
             self.info(f"Publish reg token: {self.token}")
-            self.client.publish("/reg", self.token, qos=1)
+            self.client.publish("/reg", self.token)
 
+    @log.dbg_wr
     def __on_connect(self):
         '''
         Обработчик по подключению mqtt клиента
@@ -178,6 +187,7 @@ class HUB(log):
         self.is_connected = True
         self.dereg()
 
+    @log.dbg_wr
     def __on_disconnect(self):
         '''
         Обработчик по отключению mqtt клиента
@@ -190,6 +200,7 @@ class HUB(log):
         if self._on_disconnect_cb is not None and callable(self._on_disconnect_cb):
             self._on_disconnect_cb()
 
+    @log.dbg_wr
     def __hub_topic_hnd(self, topic: str, value: bytes):
         '''
         Обработчик топика >hub
@@ -199,6 +210,7 @@ class HUB(log):
             if dev.serial == search_dev:
                 self.client.publish('<hub', self.token, qos=1)
 
+    @log.dbg_wr
     def __on_message(self, topic: str, payload: bytes):
         '''
         Обработчик входящего сообщения
@@ -230,11 +242,13 @@ class HUB(log):
         # except Exception as e:
         #     self.err(f"on_msg exception: {e}")
 
+    @log.dbg_wr
     def register_hub_cb(self, topic, cb):
         if callable(cb):
             self.root_hub_hnd.append((topic, cb, '>'))
 
 
+    @log.dbg_wr
     def register_root_cb(self, topic, cb):
         if callable(cb):
             self.root_hnd.append((topic, cb))
@@ -281,7 +295,6 @@ class HUB(log):
                     self.pub_hub("status", self.status, '/')
                     for dev in self.devices:
                         dev.publish_status()
-
                     if self._on_reg_upd is not None and callable(self._on_reg_upd):
                         self._on_reg_upd(self)
 
@@ -295,8 +308,7 @@ class HUB(log):
         except Exception as ex:
             self.err(ex)
 
-        finally:
-            gc.collect()
+        gc.collect()
 
     def set_version(self, version: str) -> None:
         self.VERSION = version
@@ -316,6 +328,7 @@ class HUB(log):
         if callable(callback):
             self._on_chg_state = callback
 
+    @log.dbg_wr
     def add_device(self, device):
         '''
         Добавляет новый девайс
@@ -330,6 +343,7 @@ class HUB(log):
         if self._on_chg_state is not None and callable(self._on_chg_state):
             self._on_chg_state(self.state)
 
+    @log.dbg_wr
     def remove_device(self, serial):
         '''
         Удаляет девайс
@@ -365,6 +379,7 @@ class HUB(log):
         self.lifetime = 65535
         self.client.disconnect()
 
+    @log.dbg_wr
     def connect(self):
         """
         Подключается к брокеру

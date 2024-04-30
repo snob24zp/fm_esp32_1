@@ -81,7 +81,8 @@ def init():
         _cfg.save()
         _log.warn('Going to reboot in 1s')
         if sys.version.count('MicroPython') > 0:
-            Timer(-1, period=1000, mode=Timer.ONE_SHOT, callback=lambda t: reset())
+            reset()
+            # Timer(-1, period=1000, mode=Timer.ONE_SHOT, callback=lambda t: reset())
         return "\"OK\""
 
     @webserv.route('/fw_upd', methods=['POST'])
