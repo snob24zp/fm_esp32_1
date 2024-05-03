@@ -1,4 +1,3 @@
-let tmr_upd_time = 4000;
 let info = {}
 
 function $(id) {
@@ -10,7 +9,8 @@ function get(url, ondone) {
         return
     }
     var xhr = new XMLHttpRequest();
-    xhr.timeout = 30000;
+    xhr.timeout = 20000;
+
     xhr.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             ondone(JSON.parse(this.responseText));
@@ -43,7 +43,8 @@ function send_ctrl() {
     if (confirm("Do you realy want to set these parameters?")) {
         var obj = form_to_json();
 
-        if (obj === null) {
+        if (obj === null || String(obj["password"]).length < 8) {
+            alert("Password must be at least 8 symbols length");
             return
         }
         obj['token'] = info.mac;
@@ -80,7 +81,14 @@ function get_ap_list(ondone) {
         return
     }
     var xhr = new XMLHttpRequest();
-    xhr.timeout = 30000;
+    xhr.timeout = 20000;
+
+    xhr.ontimeout = function() {
+        get_ap_list(ondone);
+    };
+
+    xhr.onabort = xhr.ontimeout;
+
     xhr.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             ondone(JSON.parse(this.responseText));
@@ -111,9 +119,8 @@ function append_ap(ap_list) {
                             <hr>";
             }
         }
-        tmr_upd_time = 30000;
     } else {
-        setTimeout(function () { get_ap_list(append_ap) }, 10000);
+        setTimeout(function () { get_ap_list(append_ap) }, 20000);
     }
 }
 

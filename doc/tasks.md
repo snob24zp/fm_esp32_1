@@ -8,7 +8,7 @@
 	- [x] Submitting registers
 	- [x] Non integer registers
 	- [x] Memory operations
-	- [x] FW-updater 
+	- [x] FW-updater
 		- [x] fs file
 		- [x] Uploading via html
 		- [x] uploading via mqtt
@@ -43,7 +43,7 @@
 		- [x] release page
 		- [ ] windows pyinstaller for simulator
 		- [x] generate html documentation
-		- [x] Generate initial firmware like installer or hex file 
+		- [x] Generate initial firmware like installer or hex file
 	- [ ] Batch transfers
 	- [ ] Current time register (/3?)
 - [ ] update USERVER according to last changes in UCLIENT
@@ -64,7 +64,7 @@
 	- [ ] windows
 	- [x] linux
 	- [x] esp32 (repl?)
-	- [x] question about data-formatting 
+	- [x] question about data-formatting
 		- [x] all data will be base64 formatted, and ended with EOF (0), if found \x01  then this is SMS command to modem
 	- [x] Describe somewhere data format and additional /4 /5 /6 registers
 - [ ] attach modem
@@ -74,8 +74,13 @@
 	- [x] sending sms
 	- [ ] receiving sms (low prio)
 	- [x] Inherit modem PPP from 'net_if' class
-	- [ ] handling disconnections 
+	- [ ] handling disconnections
 	- [ ] sending sms from uart/ble side
 - [x] Inherit WLAN from 'net_if' class
 - [x] Bluetooth module
 - [x] re-check flashing
+- [x] check ap scan list
+- [x] led indication - steps of connection
+- [x] minimum 8 symbols on wifi password
+- [ ] reset buton / enable access point on fail
+- [x] brackets remove and check

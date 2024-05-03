@@ -28,6 +28,7 @@ class uart_device(fwupd_device):
         self.qble = []
         self.quart = []
         self.qmqtt = []
+        self.led_lock = False
 
     def set_ble(self, ble):
         if ble is None:
@@ -38,15 +39,26 @@ class uart_device(fwupd_device):
         self.ble.open()
 
     def on_rx_uart(self, _, value: bytes):
+        board.led[0] = (0x00, 0xff, 0x00)
+        board.led.write()
         self.quart.append(value)
 
     def on_change_reg(self, topic: str, msg: object):
         if self.isnumeric(topic) and int(topic) == 3:
-            self.qmqtt.append(json.dumps(msg).encode()[1:-1])
+            if not self.led_lock:
+                board.led[0] = (0xff, 0x00, 0x00)
+                board.led.write()
+            if isinstance(msg, str):
+                self.qmqtt.append(msg)
+            else:
+                self.qmqtt.append(json.dumps(msg).encode())
+
         if self.isnumeric(topic) and int(topic) == 4:
             if sys.version.count('MicroPython') > 0 and isinstance(msg, int):
                 board.led[0] = ((msg >> 16) & 0xff, (msg >> 8) & 0xff, msg & 0xff)
                 board.led.write()
+                self.led_lock = msg != 0
+
         if self.isnumeric(topic) and int(topic) == 5:
             if sys.version.count('MicroPython') > 0 and isinstance(msg, dict):
                 self.info(f"try to send sms: {msg}")
@@ -78,6 +90,9 @@ class uart_device(fwupd_device):
                 if self.ble is not None:
                     self.ble.write(_q)
                 self.set_reg(3, _q.decode())
+                if not self.led_lock:
+                    board.led[0] = (0x00, 0x00, 0x00)
+                    board.led.write()
             del self.quart
             self.quart = []
 
@@ -86,18 +101,35 @@ class uart_device(fwupd_device):
                 if self.ble is not None:
                     self.ble.write(_q)
                 board.uplink.tx(_q)
+                if not self.led_lock:
+                    board.led[0] = (0x00, 0x00, 0x00)
+                    board.led.write()
             del self.qmqtt
             self.qmqtt = []
 
         return super().step()
 
+def led_cycle(color = (1,1,1)):
+    for i in range(0, 250, 10):
+        board.led[0] = (int(i * color[0]),int(i * color[1]), int(i * color[2]))
+        board.led.write()
+        time.sleep_ms(10)
+    for i in range(250, 0, -10):
+        board.led[0] = (int(i * color[0]), int(i * color[1]) , int(i * color[2]))
+        board.led.write()
+        time.sleep_ms(10)
+    board.led[0] = (0,0,0)
+    board.led.write()
 
 def main():
     global device, hub
-    log.set_log_lvl(log.DEBUG)
+    log.set_log_lvl(log.INFO)
     cfg = config_t()
     print(f'Current config: {cfg.json()}')
     if sys.version.count('MicroPython') > 0:
+        led_cycle()
+        board.led[0] = (0,0,0x10)
+        board.led.write()
         modem_init = False
         wlan_init = False
         if hasattr(board, "modem") and not cfg.force_wlan:
@@ -106,8 +138,8 @@ def main():
                 time.sleep(5)
                 _start = time.time()
                 while not net.is_connected() and _start < (time.time() + 30):
-                    print('waiting for network...')
-                    time.sleep(1)
+                    print('waiting for network (LTE)...')
+                    led_cycle()
                 try:
                     ntptime.settime()
                 except:
@@ -120,8 +152,9 @@ def main():
             time.sleep(5)
             _start = time.time()
             while not net.is_connected() and _start < (time.time() + 30):
-                print('waiting for network...')
-                time.sleep(1)
+                print('waiting for network (WIFI)...')
+                led_cycle()
+                time.sleep_ms(500)
 
             if cfg.wlan_mode == 0:
                 try:
@@ -131,12 +164,16 @@ def main():
                 wlan_init = net.is_connected()
 
         if cfg.wlan_mode == 1 and not wlan_init:
+            board.led[0] = (0x10, 0x00, 0x00)
+            board.led.write()
             webapp.init().run(port=80, debug=True)
 
         if wlan_init:
             start_thread(lambda: webapp.init().run(port=80), (), 8192)
 
         if wlan_init or modem_init:
+            board.led[0] = (0x10, 0x10 , 0)
+            board.led.write()
             device = uart_device(cfg.serial)
             if hasattr(board, "ble") and not wlan_init:
                 device.set_ble(board.ble)
@@ -146,6 +183,8 @@ def main():
             hub = HUB(cfg.server, cfg.token, [device], _usr, _pwd)
             hub.connect()
 
+            board.led[0] = (0x00, 0x00, 0x00)
+            board.led.write()
             while hub.is_connected:
                 hub.step()
 
