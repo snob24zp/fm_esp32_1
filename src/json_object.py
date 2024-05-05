@@ -1,5 +1,7 @@
+"""
+Creates class from JSON object
+"""
 import json
-import base64
 
 class json_object:
     '''

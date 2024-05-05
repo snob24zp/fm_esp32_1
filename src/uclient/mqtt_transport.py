@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""
+MQTT Transport abstraction layer
+"""
 
 import time
 from log import log
@@ -6,11 +9,8 @@ from net.mqtt import MQTTClient
 from uclient.transport import transport
 import sys
 if sys.version.count('MicroPython') > 0:
-    import _thread
     from machine import reset
 else:
-    from threading import Lock
-
     def reset():
         print('Reseting device')
 
@@ -27,6 +27,8 @@ class mqtt_transport(transport, log):
         self.client = None
         self.host = 'x.ks.ua'
         self.port = 1883
+        self.__on_connect_cb = None
+        self.__on_disconnect_cb = None
         self.__subscribers = {}
 
     @log.dbg_wr
@@ -137,7 +139,7 @@ class mqtt_transport(transport, log):
             except OSError as e:
                 self.err(f'OS-Error: {e}')
                 _int_reconnect *= 2
-                if (_int_reconnect > 256):
+                if _int_reconnect > 256:
                     reset()
 
     def step(self):
@@ -157,7 +159,7 @@ def test():
     mq.subscribe('/topic_b/#', lambda topic, val: print(f'B: {topic} -> {val}'))
 
     _pub_time = time.ticks_ms()
-    while(True):
+    while True:
         if time.ticks_ms() > (_pub_time + 10000):
             mq.publish('/reg', b'00:11:22:33:44:55')
             _pub_time = time.ticks_ms()

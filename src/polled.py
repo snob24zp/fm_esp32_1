@@ -1,9 +1,11 @@
+"""
+Polling class (aka scheduller)
+"""
 import time
 
 try:
     from time import ticks_ms
 except ImportError:
-    import time
     def ticks_ms():
         return int(time.time() * 1000)
     time.ticks_ms = ticks_ms
@@ -11,6 +13,9 @@ except ImportError:
 
 
 class polled:
+    """
+    Polling class (aka scheduller)
+    """
     def __init__(self, interval=100, args=(), kwargs={}):
         self.__call_intval = interval
         self.__pre_call_tm = 0

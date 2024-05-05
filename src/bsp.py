@@ -4,20 +4,21 @@ def __is_hex(s):
 
 
 def __check_str(val, parsed, cfg):
-   if str(val).startswith('&'):
-      _type = str(val[1:])
-      if _type in parsed:
-         return parsed[val[1:]]
-      elif _type in cfg:
-         parsed[_type] = __create_item(cfg[_type], parsed, cfg)
-         return parsed[_type]
-      else:
-         raise TypeError(f'Unknown type {_type}')
+    if str(val).startswith('&'):
+        _type = str(val[1:])
+        if _type in parsed:
+            return parsed[val[1:]]
 
-   elif str(val).startswith('0x') and __is_hex(str(val[2:])):
-      return int(val[2:], 16)
-   else:
-      return str(val)
+        if _type in cfg:
+            parsed[_type] = __create_item(cfg[_type], parsed, cfg)
+            return parsed[_type]
+
+        raise TypeError(f'Unknown type {_type}')
+
+    if str(val).startswith('0x') and __is_hex(str(val[2:])):
+        return int(val[2:], 16)
+    else:
+        return str(val)
 
 
 def __parse_item(val, parsed, cfg):
@@ -43,7 +44,7 @@ def __create_item(obj, parsed, cfg):
                 _ret[k] = __parse_item(obj[k], parsed, cfg)
     elif isinstance(obj, (list, tuple)):
         _ret = []
-        for c,v in enumerate(obj):
+        for _, v in enumerate(obj):
             _ret.append(__parse_item(v, parsed, cfg))
         return _ret
 

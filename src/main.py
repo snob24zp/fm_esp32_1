@@ -121,6 +121,44 @@ def led_cycle(color = (1,1,1)):
     board.led[0] = (0,0,0)
     board.led.write()
 
+def modem_est():
+    cfg = config_t()
+    if hasattr(board, "modem") and not cfg.force_wlan:
+        net = board.modem
+        if net.init():
+            time.sleep(5)
+            _start = time.time()
+            while not net.is_connected() and _start < (time.time() + 30):
+                print('waiting for network (LTE)...')
+                led_cycle()
+            try:
+                ntptime.settime()
+            except:
+                print('Could not get update from NTP server')
+            return net.is_connected()
+    return False
+
+def wlan_est(modem_init):
+    cfg = config_t()
+    if hasattr(board, "network") and not modem_init:
+        net = board.network
+        net.init()
+        time.sleep(5)
+        _start = time.time()
+        while not net.is_connected() and _start < (time.time() + 30):
+            print('waiting for network (WIFI)...')
+            led_cycle()
+            time.sleep_ms(500)
+
+        if cfg.wlan_mode == 0:
+            try:
+                ntptime.settime()
+            except:
+                print('Could not get update from NTP server')
+            return net.is_connected()
+
+    return False
+
 def main():
     global device, hub
     log.set_log_lvl(log.INFO)
@@ -128,40 +166,24 @@ def main():
     print(f'Current config: {cfg.json()}')
     if sys.version.count('MicroPython') > 0:
         led_cycle()
+        if not board.rst_pad.value():
+            _tm = 5
+            while _tm and not board.rst_pad.value():
+                led_cycle((0,0,1))
+                time.sleep_ms(500)
+                _tm -= 1
+
+            if _tm == 0:
+                cfg.reset()
+
         board.led[0] = (0,0,0x10)
         board.led.write()
-        modem_init = False
-        wlan_init = False
-        if hasattr(board, "modem") and not cfg.force_wlan:
-            net = board.modem
-            if net.init():
-                time.sleep(5)
-                _start = time.time()
-                while not net.is_connected() and _start < (time.time() + 30):
-                    print('waiting for network (LTE)...')
-                    led_cycle()
-                try:
-                    ntptime.settime()
-                except:
-                    print('Could not get update from NTP server')
-                modem_init = net.is_connected()
+        modem_init = modem_est()
+        wlan_init = wlan_est(modem_init)
 
-        if hasattr(board, "network") and not modem_init:
-            net = board.network
-            net.init()
-            time.sleep(5)
-            _start = time.time()
-            while not net.is_connected() and _start < (time.time() + 30):
-                print('waiting for network (WIFI)...')
-                led_cycle()
-                time.sleep_ms(500)
-
-            if cfg.wlan_mode == 0:
-                try:
-                    ntptime.settime()
-                except:
-                    print('Could not get update from NTP server')
-                wlan_init = net.is_connected()
+        while cfg.wlan_mode == 0 and not wlan_init and not modem_init:
+            led_cycle(1,0,0)
+            wlan_init = wlan_init(modem_init)
 
         if cfg.wlan_mode == 1 and not wlan_init:
             board.led[0] = (0x10, 0x00, 0x00)
@@ -169,6 +191,7 @@ def main():
             webapp.init().run(port=80, debug=True)
 
         if wlan_init:
+            print('IP config: ', board.network.ifconfig())
             start_thread(lambda: webapp.init().run(port=80), (), 8192)
 
         if wlan_init or modem_init:

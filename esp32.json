@@ -3,10 +3,10 @@
         "import": "hw.esp32.wlan",
         "type": "WLAN"
     },
-    // "ble" : {
-    //       "import": "hw.esp32.ble",
-    //       "type": "BLEUART"
-    // },
+    "ble" : {
+           "import": "hw.esp32.ble",
+           "type": "BLEUART"
+    },
     "uplink": {
         "import": "hw.esp32.uart_link",
         "type": "uart_link",
@@ -38,6 +38,13 @@
             "id": 8
         },
         "n": 1
+    },
+    "rst_pad": {
+        "import": "machine",
+        "type": "Pin",
+        "id": 10,
+        "mode": 1,
+        "pull": 2
     },
     "modem": {
         "import": "hw.esp32.ppp",

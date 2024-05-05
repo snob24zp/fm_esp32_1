@@ -6,10 +6,8 @@ trans_36 = bytes((x ^ 0x36) for x in range(256))
 def translate(d, t):
     return bytes(t[x] for x in d)
 
-digest_size = None
-
 class HMAC:
-    blocksize = 64 
+    blocksize = 64
 
     def __init__(self, key, msg = None, digestmod = hashlib.sha256, digest_size = 16):
         if not isinstance(key, (bytes, bytearray)):

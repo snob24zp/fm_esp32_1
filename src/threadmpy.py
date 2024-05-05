@@ -1,3 +1,6 @@
+"""
+Thread  abstraction layer
+"""
 import sys
 
 if sys.version.count('MicroPython') > 0:
@@ -5,7 +8,7 @@ if sys.version.count('MicroPython') > 0:
 else:
     import threading
 
-def start_thread(cb, args, kwargs = {}, thread_stack = 12288):
+def start_thread(cb, args, thread_stack = 12288):
     if sys.version.count('MicroPython') > 0:
         _thread.stack_size(thread_stack)
         _thread.start_new_thread(cb, args)

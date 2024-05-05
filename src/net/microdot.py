@@ -341,7 +341,7 @@ class Request():
     #: Example::
     #:
     #:    Request.max_readline = 16 * 1024  # 16KB lines allowed
-    max_readline = 2 * 1024
+    max_readline = 1536
 
     #: Specify a suggested read timeout to use when reading the request. Set to
     #: 0 to disable the use of a timeout. This timeout should be considered a
@@ -639,6 +639,7 @@ class Response():
 
     def write(self, stream):
         self.complete()
+        gc.collect()
         ret = bytearray()
         # status code
         reason = self.reason if self.reason is not None else \
@@ -654,6 +655,8 @@ class Response():
                     header=header, value=value).encode())
 
         ret.extend(b'\r\n')
+        stream.write(ret)
+        del ret
 
         # body
         if not self.is_head:
@@ -661,9 +664,8 @@ class Response():
                 for body in self.body_iter():
                     if isinstance(body, str):  # pragma: no cover
                         body = body.encode()
-                    ret.extend(body)
-
-                stream.write(ret)
+                    stream.write(body)
+#                stream.write(ret)
 
             except OSError as exc:  # pragma: no cover
                 if exc.errno in MUTED_SOCKET_ERRORS:
@@ -1197,6 +1199,7 @@ class Microdot():
         else:
             stream = sock
 
+        gc.collect()
         req = None
         res = None
         try:

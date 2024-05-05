@@ -257,7 +257,7 @@ def b32decode(s, casefold=False, map01=None):
     characters present in the input.
     """
     s = _bytes_from_decode_data(s)
-    quanta, leftover = divmod(len(s), 8)
+    _, leftover = divmod(len(s), 8)
     if leftover:
         raise binascii.Error("Incorrect padding")
     # Handle section 2.4 zero and one mapping.  The flag map01 will be either
@@ -351,14 +351,14 @@ MAXLINESIZE = 76  # Excluding the CRLF
 MAXBINSIZE = (MAXLINESIZE // 4) * 3
 
 
-def encode(input, output):
+def encode(inp, output):
     """Encode a file; input and output are binary files."""
     while True:
-        s = input.read(MAXBINSIZE)
+        s = inp.read(MAXBINSIZE)
         if not s:
             break
         while len(s) < MAXBINSIZE:
-            ns = input.read(MAXBINSIZE - len(s))
+            ns = inp.read(MAXBINSIZE - len(s))
             if not ns:
                 break
             s += ns
@@ -366,10 +366,10 @@ def encode(input, output):
         output.write(line)
 
 
-def decode(input, output):
+def decode(inp, output):
     """Decode a file; input and output are binary files."""
     while True:
-        line = input.readline()
+        line = inp.readline()
         if not line:
             break
         s = binascii.a2b_base64(line)

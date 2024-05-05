@@ -1,10 +1,15 @@
+"""
+Device configuration file
+"""
 
-from json_object import json_object
 import os
 import hashlib
-
 import sys
+
+from json_object import json_object
+
 if sys.version.count('MicroPython') > 0:
+    from machine import reset
     from machine import unique_id
     _filename = 'config.json'
 else:
@@ -20,7 +25,7 @@ class config_t(json_object):
         self.ap_ssid = f'AR-{self.mac}'
         self.ap_pwd = ''
         self.sta_ssid = f'AR-{self.mac}'
-        self.sta_pwd = f'12345678'
+        self.sta_pwd = '12345678'
         self.ifconfig = ('dhcp',)
         self.server = "x.ks.ua"
         self.token = bytes.fromhex(self.mac).hex(':')
@@ -43,3 +48,8 @@ class config_t(json_object):
         '''
         with open(cfg_file, "wt") as c:
             c.write(self.json())
+
+    def reset(self, cfg_file = _filename):
+        os.unlink(cfg_file)
+        if sys.version.count('MicroPython') > 0:
+            reset()

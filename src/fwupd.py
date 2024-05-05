@@ -4,7 +4,7 @@ import time
 import sys
 import base64
 
-from uclient import aes 
+from uclient import aes
 from log import log
 
 
@@ -75,6 +75,7 @@ class fwupd(log):
     def __init__(self) -> None:
         super().__init__('FW-UPD')
         self._is_not_simu = sys.version.count('MicroPython') > 0
+        self.state = None
         self.reset()
         fwupd._mpy_cp()
 
@@ -117,12 +118,14 @@ class fwupd(log):
         if int(cmd) == 0:
             self.reset()
             return 'OK'
-        elif int(cmd) == 1:
+
+        if int(cmd) == 1:
             self.reset()
             self.state = 1
             self.warn('Prepared to upgrade')
             return 'OK'
-        elif int(cmd) == 2 and self.state == 1:
+
+        if int(cmd) == 2 and self.state == 1:
             self.warn('Try to mount incoming FW-image')
             try:
                 if sys.version.count('MicroPython') > 0:

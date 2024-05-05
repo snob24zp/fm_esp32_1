@@ -70,7 +70,7 @@
 - [ ] attach modem
 	- [x] via usb-tty
 	- [x] to esp32
-	- [ ] gsm07.10
+	- [x] gsm07.10
 	- [x] sending sms
 	- [ ] receiving sms (low prio)
 	- [x] Inherit modem PPP from 'net_if' class
@@ -82,5 +82,6 @@
 - [x] check ap scan list
 - [x] led indication - steps of connection
 - [x] minimum 8 symbols on wifi password
-- [ ] reset buton / enable access point on fail
+- [x] reset buton / enable access point on fail
 - [x] brackets remove and check
+- [x] Wi-Fi STA web fail

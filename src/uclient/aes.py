@@ -1,3 +1,6 @@
+"""
+AES abstraction layer
+"""
 import sys
 
 if sys.version.count('MicroPython') > 0:
@@ -8,8 +11,8 @@ else:
 def cipher(key, iv):
     if sys.version.count('MicroPython') > 0:
         return aes(key, 2, iv)
-    else:
-        return AES.new(key, AES.MODE_CBC, iv)
+
+    return AES.new(key, AES.MODE_CBC, iv)
 
 
 def decrypt(data: bytes, key: bytes, iv=bytes(16)) -> bytes:

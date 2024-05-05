@@ -1,25 +1,24 @@
+"""
+Расширение класса Device для поддержки работы с пользователями и шифрованием сообщений
+"""
 import os
 import base64
 import struct
 
 import json
 import hashlib
-try:
-    from time import ticks_ms
-except ImportError:
-    import time
-
-    def ticks_ms():
-        return int(time.time() * 1000)
 
 from uclient.device import device_base
-import uclient.aes as aes
-import uclient.hmac as hmac
+from uclient import aes
+from uclient import hmac
 from config import config_t
 
 class user:
+    """
+    Сериализатор / Десериализатор "пользователя"
+    """
     MEM_DIR = 'data'
-    FNAME = f'acl.json'
+    FNAME = 'acl.json'
     FPATH = f'{MEM_DIR}/{FNAME}'
 
     FMT = '>32sB64shx'
@@ -49,7 +48,7 @@ class user:
                 for idx, itm in enumerate(_acls):
                     if list(acl) == itm:
                         return idx
-                
+
         _acls.append(acl)
         with open(user.FPATH, 'wt') as fd:
             json.dump(_acls, fd)
@@ -60,25 +59,28 @@ class user:
     @staticmethod
     def parse(data):
         return user(*struct.unpack(user.FMT, data))
-    
+
     def serialize(self):
         acl_offset = user.save_acl(self.acl)
         return struct.pack(user.FMT, self.uid, self.perm, self.name, acl_offset)
-    
+
     def __str__(self) -> str:
         name = self.name.strip(b'\0').decode()
         return f'{name} ({self.uid.hex()})'
-    
+
     def __repr__(self) -> str:
         return self.__str__()
 
 class user_device(device_base):
+    """
+    Пользовательское устройство (т.е устройство с поддержкой авторизации)
+    """
     MEM_DIR = 'data'
-    FNAME = f'%d.users'
+    FNAME = '%d.users'
     FPATH = f'{MEM_DIR}/{FNAME}'
     ADD_FMT = '>32sB64s'
     MAX_USER_CNT = 32
-    
+
     PERM_REG_WR = 0x02
     PERM_MEM_RD = 0x04
     PERM_MEM_WR = 0x08
@@ -92,9 +94,9 @@ class user_device(device_base):
         self._device_id = bytes.fromhex(config_t().device_id) if device_id is None else device_id
         if not user_device.MEM_DIR in os.listdir('.'):
             os.mkdir(user_device.MEM_DIR)
- 
+
         self.__user_list = user_device.load_db(serial)
-    
+
     def set_hub(self, hub):
         super().set_hub(hub)
         self._hub.register_root_cb('>user/dev',self.on_user_dev)
@@ -107,7 +109,7 @@ class user_device(device_base):
         if _fname in os.listdir(f'./{user_device.MEM_DIR}'):
             with open(_fpath, 'rb') as fd:
                 while True:
-                    usr = fd.read(struct.calcsize(user_device.USR_STRUCT))
+                    usr = fd.read(struct.calcsize(user.FMT))
                     if not usr:
                         break
                     ret.append(user.parse(usr))
@@ -143,7 +145,7 @@ class user_device(device_base):
             #1. decipher text
             #2. unpack via struct
             #3. apply to user_list
-            
+
             if len(self.__user_list) >= user_device.MAX_USER_CNT:
                 self.err('Maximum user count is reached')
                 return True
@@ -152,7 +154,8 @@ class user_device(device_base):
             if usr is None and len(self.__user_list) > 0:
                 self.err('Unknown user tries to add new user')
                 return True
-            elif usr is not None:
+
+            if usr is not None:
                 key = usr.uid
 
             if  usr is not None and (usr.perm & user_device.PERM_USERS) == 0:
@@ -165,7 +168,7 @@ class user_device(device_base):
 
             msg = aes.decrypt(base64.b64decode(msg), key)
             (uid, perm, name) = struct.unpack(user_device.ADD_FMT, msg[:sz])
-            for idx, _usr in enumerate(self.__user_list):
+            for _, _usr in enumerate(self.__user_list):
                 if _usr.name == name or _usr.uid == uid:
                     self.__user_list.remove(_usr)
                     break
@@ -204,7 +207,7 @@ class user_device(device_base):
             if usr is None:
                 self.err('User auth failed')
                 return True
-            
+
             if (usr.perm & user_device.PERM_USERS) == 0:
                 self.err(f"User ({usr}) don\'t have permission to remove users")
                 return True
@@ -214,7 +217,7 @@ class user_device(device_base):
             if usr.uid == uid:
                 self.err('User can\'t remove himself')
                 return True
-            
+
             for _usr in self.__user_list:
                 if _usr.uid == uid:
                     self.__user_list.remove(_usr)
@@ -223,8 +226,8 @@ class user_device(device_base):
             return True
 
         return False
-    
-    def on_user_dev(self, topic,  msg):
+
+    def on_user_dev(self, _,  msg):
         # on root topic ('>user/dev')
         for _usr in self.__user_list:
             if base64.b64decode(msg) == hashlib.sha256(_usr.uid).digest():
@@ -257,11 +260,9 @@ def test():
     try:
         from machine import unique_id
     except ImportError:
-        from config import config_t
-
         def unique_id():
             return config_t().mac
-    
+
     device_id = hashlib.sha256('device'.encode()).digest()
     dev = user_device(device_id, 12345)
     token = unique_id().hex(":")

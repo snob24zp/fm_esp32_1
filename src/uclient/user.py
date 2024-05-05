@@ -1,3 +1,6 @@
+"""
+Расширение класса Device для поддержки работы с пользователями и шифрованием сообщений
+"""
 try:
     from micropython import const
 except ImportError:
@@ -6,7 +9,9 @@ except ImportError:
 
 
 class user_base:
-    
+    """
+    Описание пользователя
+    """
     USER_ACL_REG_READ = const(1)   # уведомление об изменениях регистров
     USER_ACL_REG_WRITE = const(2)  # изменение значения регистров
     USER_ACL_MEM_READ = const(4)   # считывание память
@@ -15,7 +20,7 @@ class user_base:
     USER_ACL_EVT = const(0x20)     # Пользователь может получать список событий
     USER_ACL_USR = const(0x40)     # Пользователь может изменять список пользователей
     USER_ACL_RST = const(0x80)     # сбрасывать устройство в заводские значения
-    
+
     def __init__(self, name : str, uid: bytes, perm: int) -> None:
         self.name = name
         self.uid = uid
@@ -28,7 +33,7 @@ class user_base:
     def __getitem__(self, key):
         if hasattr(self, key):
             return getattr(self, key)
-        
+
         raise Exception(f'{key} is not found')
 
     def __setitem__(self, key, value):
