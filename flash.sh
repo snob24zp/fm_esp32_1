@@ -23,7 +23,7 @@ MPY_CROSS="./tools/mpy-cross"
 # CMD="echo $1"
 echo "Generate BSP"
 rm src/board.py
-jsonlint -Sf $BOARD | tools/json2py.py > src/board.py
+tools/json2py.py < $BOARD > src/board.py
 
 echo "ARCH = \"${BOARD%.*}\"" > src/hw/arch.py
 
@@ -65,26 +65,20 @@ for _lib in ${HTMLS[@]}; do
 
     for _f in ./$_lib/*.html; do
         _rf="$_lib/$(basename $_f)"
-        _minified="./src/$_lib/$(basename $_f)"
-        minify $_f > $_minified
-        echo "copying HTML $_minified -> $_rf"
-        $CMD put $_minified $_rf
+        echo "copying HTML $_f -> $_rf"
+        $CMD put $_f $_rf
     done
     
     for _f in ./$_lib/*.js; do
         _rf="$_lib/$(basename $_f)"
-        _minified="./src/$_lib/$(basename $_f)"
-        minify $_f > $_minified
-        echo "copying JS $_minified -> $_rf"
-        $CMD put $_minified $_rf
+        echo "copying JS $_f -> $_rf"
+        $CMD put $_f $_rf
     done
     
     for _f in ./$_lib/*.css; do
         _rf="$_lib/$(basename $_f)"
-        _minified="./src/$_lib/$(basename $_f)"
-        minify $_f > $_minified
-        echo "copying CSS $_minified -> $_rf"
-        $CMD put $_minified $_rf
+        echo "copying CSS $_f -> $_rf"
+        $CMD put $_f $_rf
     done
 done
 

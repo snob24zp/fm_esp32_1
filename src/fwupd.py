@@ -10,7 +10,6 @@ from log import log
 
 if sys.version.count('MicroPython') > 0:
     import machine
-    import disk
 
 class ueba_pkg:
     DEV_TYPE = 5523
@@ -98,12 +97,12 @@ class fwupd(log):
             try:
                 print(f"FW file size: {os.stat(fwupd.FW_FILE)[6]} bytes")
                 print("Mount FS image")
-                disk.mount(fwupd.FW_FILE, fwupd.FW_MOUNTPOINT)
+                os.mount(fwupd.FW_FILE, fwupd.FW_MOUNTPOINT)
                 print('Copying. Disk free: ', disk.free('/'))
-                sz = disk.cp(fwupd.FW_MOUNTPOINT, '.', True)
+                sz = os.cp(fwupd.FW_MOUNTPOINT, '.', True)
                 print(f'Copy done: {sz} bytes')
                 print('Unmounting disk. Disk free:', disk.free('/'))
-                disk.umount(fwupd.FW_MOUNTPOINT)
+                os.umount(fwupd.FW_MOUNTPOINT)
             finally:
                 print('Unlink FW disk image')
                 os.unlink(fwupd.FW_FILE)
@@ -129,7 +128,7 @@ class fwupd(log):
             self.warn('Try to mount incoming FW-image')
             try:
                 if sys.version.count('MicroPython') > 0:
-                    disk.mount(fwupd.FW_FILE, fwupd.FW_MOUNTPOINT)
+                    os.mount(fwupd.FW_FILE, fwupd.FW_MOUNTPOINT)
                 else:
                     time.sleep(1)
                 self.warn('Mounting done. Image valid')
