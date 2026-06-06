@@ -12,3 +12,5 @@ src/net/gsm0710/build/**
 src/net/gsm0710/.vscode/**
 src/board.py
 src/version.py
+.venv
+.obsidian

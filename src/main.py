@@ -147,15 +147,22 @@ def wlan_est(modem_init):
         _start = time.time()
         while not net.is_connected() and _start < (time.time() + 30):
             print('waiting for network (WIFI)...')
-            led_cycle()
+            print('waiting for network (WIFI)...1.1')
+            #led_cycle()  #RDD TODO freezed
+            print('waiting for network (WIFI)...1.2')
             time.sleep_ms(500)
+            print('waiting for network (WIFI)...1')
 
         if cfg.wlan_mode == 0:
+            print('waiting for network (WIFI)...2')
             try:
                 ntptime.settime()
+                print('waiting for network (WIFI)...3')
             except:
                 print('Could not get update from NTP server')
+                
             return net.is_connected()
+            print('waiting for network (WIFI)...4')
 
     return False
 
