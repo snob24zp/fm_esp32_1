@@ -168,7 +168,7 @@ def wlan_est(modem_init):
 
 def main():
     global device, hub
-    log.set_log_lvl(log.INFO)
+    log.set_log_lvl(log.DEBUG)
     cfg = config_t()
     print(f'Current config: {cfg.json()}')
     if sys.version.count('MicroPython') > 0:

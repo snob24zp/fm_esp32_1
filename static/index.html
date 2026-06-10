@@ -6,29 +6,7 @@
     <title>WI-FI connection setup</title>
     <link rel="stylesheet" media="all" href="style.css" />
     <script type="text/javascript" src="main.js"></script>
-    <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function () {
-            get("/info", function (inf) {
-                info = inf
-                let ver = inf.version.split(';')
-                $("serial").innerText = inf.serial
-                $("mac").innerText = inf.mac
-                $("ver").innerText = ver[0] + " " + ver[1] + " " + ver[2].slice(0, 8)
-                document.getElementById("ap-list").innerHTML =
-                    "<div class=\"lds-ring\"><div></div><div></div><div></div><div></div></div>"
-                get_ap_list(append_ap);
-            })
-            $("pb").addEventListener("click", () => {
-                const p = $("pwdbox")
-                const type = p.getAttribute('type') === 'password' ? 'text' : 'password';
-                p.setAttribute('type', type);
-                $("pb").classList.toggle('pbs');
-                $("pb").classList.toggle('pbc');
-            }, false)
-        });
-    </script>
 </head>
-
 
 <body>
     <div class="flexbox-panel">
@@ -39,72 +17,43 @@
         </div>
         <div class="flex-item box1 main" id="main-box">
             <div class="title">
-
                 <div class="wifi">
                     <h2>WI-FI connection setup WIFI</h2>
                 </div>
-                <div class="img">
-                    <img src="data:image/gif;base64,R0lGODlhYgBiAMQQAH9/fxAQEO/v70BAQL+/v6+vr2BgYN/f3yAgIM/Pz5+fn1BQUI+PjzAwMHBwcAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAABiAGIAAAX/ICSOZGmeaKqubOu+cCzPdG3feK7vdTIMC4AQUCAkeMgk4cFsOh+BgQFAECSvs+Vz+0QsGASseCUgEBRDxy/AdQa+h7H8lSAAFo32o+E4zv8tdgtsWwgMcYCJKgkAeVsLBYqSKAcMA4UAVpObI5UITwEOiJycBAZbBqOkkwIAhE2Zq5wCCp9NAQyypLVOCGG6rK5OC5rAigKnt5HGkgmOTMTMkgyvAb/SgAeXsNiKDE4Dxd1yCbYPCH7jcgILtwrqf99N7/ByBa8G9eTm+fpiAs/6zRlCxYwugE0EjmkTxQCYTQK2PVCIRc8TPtcAJZsoZ4iBH+a4vKH3RyLFP3Xu/4S8ZSAjFoRMcpE6oMDAqyYNSL58ppNUAZugYr20FSCdrgLt3AAQk4AQAnG6Dji4iWCZkiYDurW6OUDVDnkPlmoFoPRK0gcumWkD5xUHzABQpd1ThiRBkwX12DlxgASsVXVzmYTjsQ2uvgPPGrStcYAQXn3Ibhm9ATbtOLJMiu7YhsCfCAWSddhlItYf6MyTazjIHFfdaSiLZQggxNczhNcNWsvA/CD2uNdZc9g6WY937RuvfY/b+LfG8BkHhhTRneStchevqafQ4mYAFTmNBQsnLYO7yJZiCnC7gTmAjOgA1DzrwkB7jaQBrrOYzaTnjAQMDBKUfbIREpwNyRyYw/9PXTSHg3pMOBjDaL0hsdUwBMLAGQ6OlMbDhZlJSMMB69UgT2dYrFUiDqtBkWEKAjSRGg8K4KMDf2HdkNRxWDiTkA7tIccEimNE9KNbhPgHQ4xMzJjERsTJ0GIDN2wj0xwbeThiE5a9II+CckgkIgxJRekChYm89WIKELpnAyFdXtEUNDgQMmYLSWkph183JGNmC19KwtmaJ7RpgxZuJhJejm8yEWcLTeiHRHuEmpAMjzJsc+cVOF45w2lgxpCMngMNaQOJTNggz2PHcNkoWjVoESoKCqgxgANKwuCnDUl5GgOqD7BQwEpQbKqCoTVg9icLTWj3Ghe5tgBnDRDO+oK0LXFCCIUDBRQwVRPGopBnD5nZsE2ctihGAmKmzhBoDU3wGhMKbba1aLSLlFsDIU62gBmpECiLQouYvtBsDecmS94JmtIr3gyOPLpCwjT8i0LDhT6cqaM1jFoDqCgIfALBNLQIsL8LZ6FxCdqmtmi4J1hcccrlrVxCukaxe47CjM4gs8oPWAuBeQYoUNMrMJ9wgBmS/mNGv7dZhK9tLxBAbFVU71AAAD8QkfXXYIct9thkmxACADs="
-                        alt="">
-                </div>
+                <div class="img"><img src="data:image/gif;base64,R0lGODlhYgBiAMQQAH9/fxAQEO/v70BAQL+/v6+vr2BgYN/f3yAgIM/Pz5..." /></div>
             </div>
-
-            <form action="" method="" onsubmit="return false;">
+            <form action="">
                 <table class="box3">
                     <tr class="box2">
-                        <td>
-                            <p>WI-FI Access point name</p>
-                        </td>
-                        <td><input type="text" maxlength=32 name="ap" required id="ap-name-box" /></td>
+                        <td><p>WI-FI Access point name</p></td>
+                        <td><input maxlength=32 name="ap" required id="ap-name-box" type="text"></td>
                     </tr>
                     <tr class="box2">
-                        <td>
-                            <p>Password</p>
-                        </td>
-
+                        <td><p>Password</p></td>
                         <td>
                             <div>
-                                <input id="pwdbox" type="password" maxlength=32 minlength="8" name="password"
-                                    required />
+                                <input id="pwdbox" type="password" maxlength=32 minlength="8" name="password" required />
                                 <i id="pb" class="pb pbs">&nbsp;</i>
                             </div>
                         </td>
                     </tr>
                 </table>
-
-                <button class="subbut" onclick="send_ctrl()">
+                <button type="submit" class="subbut">
                     <p class="buttext">Connect</p>
                 </button>
             </form>
             <div class="list">
                 <hr>
-                <div class="ap_list" id="ap-list">
-                </div>
+                <div class="ap_list" id="ap-list"></div>
             </div>
             <div class="info">
                 <table style="font-size: 10pt; color: #666;">
-                    <tr>
-                        <td align="right">MAC:</td>
-                        <td>
-                            <div id="mac"> - </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td align="right"> Device serial:</td>
-                        <td>
-                            <div id="serial"> - </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td align="right">FW Version:</td>
-                        <td>
-                            <div id="ver"> - </div>
-                        </td>
-                    </tr>
+                    <tr><td align="right">MAC:</td><td><div id="mac"> - </div></td></tr>
+                    <tr><td align="right"> Device serial:</td><td><div id="serial"> - </div></td></tr>
+                    <tr><td align="right">FW Version:</td><td><div id="ver"> - </div></td></tr>
                 </table>
             </div>
         </div>
     </div>
 </body>
-
 </html>

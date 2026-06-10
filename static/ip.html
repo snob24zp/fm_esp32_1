@@ -6,24 +6,6 @@
     <title>IP address configuration</title>
     <link rel="stylesheet" media="all" href="style.css" />
     <script type="text/javascript" src="main.js"></script>
-    <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function () {
-            get("/info", (_info) => {
-                info = _info
-                $("ip_type").value = info.ip_type === 0 ? 'static' : 'dhcp'
-                $("ip").value = info.ip
-                $("gw").value = info.gw
-                $("mask").value = info.mask
-                $("dns").value = info.dns
-
-                $("mac").innerText = info.mac
-                $("ver").innerText = info.version
-                $("serial").innerText = info.serial
-                lock_staticbox()
-            })
-        });
-
-    </script>
 </head>
 
 <body>
@@ -36,66 +18,38 @@
 
         <div class="flex-item main box1" id="main-box">
             <div class="title">
-                <div class="wifi">
-                    <h2>IP address configuration</h2>
-                </div>
-                <div class="img">
-                    <img
-                        src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAADn0lEQVR4nO2aX4gPURTHvz+y/uym1kpstCEv1q/UvhD7Ql7kSUm0DxKK2n47xetKtkhJks2qffLAbvEga/2LIiJeLCmFJ5awrMLaFj/dOlOnMfP7nXvnzm9md++nzsvMnXvOfGfm/jlnAIfD4XA4HI5wZgOotWRTYJ9qgzimSjpuAfABQNGijQA4KQ1AwBnDOL4AyJfquBHAmOWb59ZqSYCPMWIolOq4hxr9pSd21JINUr/vAcy0IMAn6u+50H8nE8CL6nQ5gD/U6DLs0ioJwECAc8L2DRL/PezpN8EuMwC8jfkW1CQpQCN7+n9psLBtoyyINs2b3wCgPUkBCgkOfGF2VePmVwH4DqAjSQE81uAKgN6E7Bv56BcGvgLAEF1TMQEakBwvNARYAuAdi2vHZBJgHoCXLKYjgfMVEaCaZoYnMewOvcY6Aqgl6wCL5yyAXIQAQ8I4BkwE2GRpwDulIYAS/QG7tjdi+exPqSa2VyrAZnbsMYCbmvabru0SClAF4BrzeZ2OhbEdwI0Qn2/Y9bdDzp8HUGciQDP0+aEhgNotXmD+HgYWPlI6WB+zdC70UhQgR9+572uAxgEpdWyxNcL6+UrHTmRdgHbm5zWABZp+5pb55rl/YwGOAdijaaNCAfrp2CDN/brUkI8oa7EhQDGGSQQYBrASKeKlKMBFAGuRMl4ZAbbS66ljP4UC1CMDeClPg6njOQGQ2huglr+p46U4CHYDWIwMCrDOkgAqK1tuGnwFYD4yJkCOdk5x0uHtgWVtqYXQU80lsFW8EAGSIEyA08z3/bTGBC9FAaooSer7vwVgOiqMl6IAoK3rPRbDJYt1xHEhgGIOgGeB2SOYCvNppnJXl6YdoiLNf5gIoJ7QegpcSrmVYD1tiaOSoT4886NrO20JcJDaqxyeFMlSeCkrpio7ENLGT4qOCqtSw0mkxfdTe5WbkyLdC+QpcL9UtytwPjN1gXzUNxWBzmZoNZXEipRg3ZhFAXTR3Q2qMeZXlktjy0qkrsMw2Q5voTcgcwIUqH0f5JjmA3ZnUYDD1P4R5MRJiCzMmgDTqHymCplSbGWEMiGACbYFuEtjBLdtIcf2TVQBigbWNhEE6DO8+bGo9J43zgSookJKU8C62X2sCTm/KKpDj13YafEHyaB9tiQAp5r1z/8tOE7HVG6zLIUY31TSf4lVpDiaZ39jJW1jtLDJlAD+/r62AqazeZKQK+NP60cJh8PhcDgcmBT8A/LsqzPjVfxbAAAAAElFTkSuQmCC">
-                </div>
+                <div class="wifi"><h2>IP address configuration</h2></div>
+                <div class="img"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAE..." /></div>
             </div>
-
-            <form action="" method="" onsubmit="return false;">
-
-
+            <form action="">
                 <table class="box3">
                     <tr class="box2">
+                        <td><p>Type</p></td>
                         <td>
-                            <p>Type</p>
-                        </td>
-                        <td>
-                            <select id="ip_type" onchange="lock_staticbox()">
+                            <select id="ip_type">
                                 <option value="static">Static IP address</option>
                                 <option value="dhcp">DHCP (Automatic address assign)</option>
                             </select>
                         </td>
                     </tr>
-
                     <tr class="box2">
-                        <td>
-                            <p>IP Address</p>
-                        </td>
-                        <td><input type="text" minlength="7" maxlength="15" size="15"
-                                pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
-                                name="ip" required id="ip" /></td>
+                        <td><p>IP Address</p></td>
+                        <td><input type="text" minlength="7" maxlength="15" size="15" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" required name="ip" id="ip" /></td>
                     </tr>
                     <tr class="box2">
-                        <td>
-                            <p>Network Mask</p>
-                        </td>
-                        <td><input type="text" minlength="7" maxlength="15" size="15"
-                                pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
-                                required name="mask" value="255.255.255.0" id="mask" /></td>
+                        <td><p>Network Mask</p></td>
+                        <td><input type="text" minlength="7" maxlength="15" size="15" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" required name="mask" value="255.255.255.0" id="mask" /></td>
                     </tr>
                     <tr class="box2">
-                        <td>
-                            <p>Gateway</p>
-                        </td>
-                        <td><input type="text" minlength="7" maxlength="15" size="15"
-                                pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
-                                required name="gw" id="gw" /></td>
+                        <td><p>Gateway</p></td>
+                        <td><input type="text" minlength="7" maxlength="15" size="15" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" required name="gw" id="gw" /></td>
                     </tr>
                     <tr class="box2">
-                        <td>
-                            <p>DNS</p>
-                        </td>
-                        <td><input type="text" minlength="7" maxlength="15" size="15"
-                                pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
-                                required name="dns" id="dns" /></td>
+                        <td><p>DNS</p></td>
+                        <td><input type="text" minlength="7" maxlength="15" size="15" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" required name="dns" id="dns" /></td>
                     </tr>
                 </table>
-
-                <button class="subbut" onclick="send_ctrl()">
+                <button type="submit" class="subbut">
                     <p class="buttext">Change</p>
                 </button>
             </form>
@@ -103,28 +57,12 @@
             <div class="info">
                 <p><a href="fw.html">Firmware update</a></p>
                 <table style="font-size: 10pt; color: #666;">
-                    <tr>
-                        <td align="right">MAC:</td>
-                        <td>
-                            <div id="mac"> - </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td align="right"> Device serial:</td>
-                        <td>
-                            <div id="serial"> - </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td align="right">FW Version:</td>
-                        <td>
-                            <div id="ver"> - </div>
-                        </td>
-                    </tr>
+                    <tr><td align="right">MAC:</td><td><div id="mac"> - </div></td></tr>
+                    <tr><td align="right"> Device serial:</td><td><div id="serial"> - </div></td></tr>
+                    <tr><td align="right">FW Version:</td><td><div id="ver"> - </div></td></tr>
                 </table>
             </div>
         </div>
     </div>
 </body>
-
 </html>

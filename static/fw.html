@@ -4,20 +4,7 @@
     <meta charset="utf-8">
     <title>Firmware update</title>
     <link rel="stylesheet" media="all" href="style.css" />
-    <script type="text/javascript" src="fw.js"></script>
-    <script type="text/javascript">
-        document.addEventListener("DOMContentLoaded", () => {
-            get("/info", (info) => {
-                let ver = info.version.split(';')
-                $("mac").innerText = info.mac
-                $("fw_cur_type").innerText = info.type
-                $("fw_cur_ver").innerText = ver[0]
-                $("fw_cur_branch").innerText = ver[1]
-                $("fw_cur_commit").innerText = ver[2]
-                $("serial").innerText = info.serial
-            })
-        });
-    </script>
+    <script type="text/javascript" src="main.js"></script>
 </head>
 
 <body>
@@ -34,47 +21,27 @@
                         <h2>Firmware update</h2>
                     </div>
                     <div class="img">
-                        <img src=" data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAABmJLR0QA/wD/AP+gvaeTAAABH0lEQVRoge2ZWwrCMBBFDyLuyboBxXX5Wpe6EW27DPXDlPoIrYlNM03nwBBoGLiXaSdlAiPmDBwj7nfG3USsfSsT1wSpJGNkFMyAA1BSv7exogB2RpMzewEGPmPrY6QwyXOf5I7JqCvjjFcbDEijnmS6lquRNZADV2DVvZz/OfP+UYG9lNeX55fe1H3redV6groit55FdUmrdltFVjyrcgGWAUS56gmbGAjtWoNCjUijMmI7RySj54gEtP0OCjUijeSM6DkiAD1HRKJGpKFGAvH33OzXuVZomuZmOteKUZGmuZnOtQZFk5HSrFkfQlpYmNXromdH/Ku2z9j4GJkZM9UVXMzIjQmvy9DkaetmofetjKJrDYqpR071XxZrP20eUscOAdrCjPcAAAAASUVORK5CYII="
-                            alt="">
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAy..." alt="">
                     </div>
                 </div>
 
                 <div class="fw_tbl">
                     <table>
-                        <tr>
-                            <td>MAC Address:</td>
-                            <td id="mac"></td>
-                        </tr>
-                        <tr>
-                            <td>Device serial:</td>
-                            <td id="serial"></td>
-                        </tr>
-                        <tr>
-                            <td>Device type:</td>
-                            <td id="fw_cur_type"></td>
-                        </tr>
-                        <tr>
-                            <td>Current FW Version:</td>
-                            <td id="fw_cur_ver"></td>
-                        </tr>
-                        <tr>
-                            <td>Git Branch:</td>
-                            <td id="fw_cur_branch"></td>
-                        </tr>
-                        <tr>
-                            <td>Git Commit:</td>
-                            <td id="fw_cur_commit"></td>
-                        </tr>
-
+                        <tr><td>MAC Address:</td><td id="mac"></td></tr>
+                        <tr><td>Device serial:</td><td id="serial"></td></tr>
+                        <tr><td>Device type:</td><td id="fw_cur_type"></td></tr>
+                        <tr><td>Current FW Version:</td><td id="fw_cur_ver"></td></tr>
+                        <tr><td>Git Branch:</td><td id="fw_cur_branch"></td></tr>
+                        <tr><td>Git Commit:</td><td id="fw_cur_commit"></td></tr>
                     </table>
                 </div>
 
                 <div class="steps">
                     <div id="upload_file">
-                        <h4>Open firmware udpate package</h4>
+                        <h4>Open firmware update package</h4>
                         <form id="upload_file_frm">
                             <label class="fw_but subbut">
-                                <input type="file" onchange="file_select(this)" style="display: None;" />
+                                <input type="file" style="display: None;" id="fw-file-input" />
                                 Open
                             </label>
                         </form>
@@ -83,28 +50,13 @@
                         <h4>Information about FW update package</h4>
                         <div id="fw_info_frm" class="fw_tbl">
                             <table>
-                                <tr>
-                                    <td>Build time:</td>
-                                    <td id="fw_new_built"></td>
-                                </tr>
-                                <tr>
-                                    <td>Device:</td>
-                                    <td id="fw_new_type"></td>
-                                </tr>
-                                <tr>
-                                    <td>FW Version:</td>
-                                    <td id="fw_new_ver"></td>
-                                </tr>
-                                <tr>
-                                    <td>Git Branch:</td>
-                                    <td id="fw_new_branch"></td>
-                                </tr>
-                                <tr>
-                                    <td>Git Commit:</td>
-                                    <td id="fw_new_commit"></td>
-                                </tr>
+                                <tr><td>Build time:</td><td id="fw_new_built"></td></tr>
+                                <tr><td>Device:</td><td id="fw_new_type"></td></tr>
+                                <tr><td>FW Version:</td><td id="fw_new_ver"></td></tr>
+                                <tr><td>Git Branch:</td><td id="fw_new_branch"></td></tr>
+                                <tr><td>Git Commit:</td><td id="fw_new_commit"></td></tr>
                             </table>
-                            <button class="subbut" onclick="push_fw()">
+                            <button class="subbut" id="burn-btn">
                                 <p class="buttext">Burn</p>
                             </button>
                         </div>
@@ -127,10 +79,9 @@
                 </div>
             </div>
             <div class="box1 main" style="margin-top: 8px;" id="rst-box">
-                <p><a class="rstlnk" href="#" onclick="rst()">Reset to default configuration</a></p>
+                <p><a class="rstlnk" href="#" id="rst-link">Reset to default configuration</a></p>
             </div>
         </div>
     </div>
 </body>
-
 </html>
