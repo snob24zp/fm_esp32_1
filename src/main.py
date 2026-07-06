@@ -1,7 +1,9 @@
 import board
 import time
 from config import config_t
-import net.webapp as webapp
+#import net.webapp as webapp
+
+from net.mqtt import test
 
 import sys
 import json
@@ -185,7 +187,7 @@ def main():
 
         board.led[0] = (0,0,0x10)
         board.led.write()
-        modem_init = modem_est()
+        modem_init = False # modem_est()
         wlan_init = wlan_est(modem_init)
 
         while cfg.wlan_mode == 0 and not wlan_init and not modem_init:
@@ -199,7 +201,21 @@ def main():
 
         if wlan_init:
             print('IP config: ', board.network.ifconfig())
-            start_thread(lambda: webapp.init().run(port=80), (), 8192)
+            #start_thread(lambda: webapp.init().run(port=80), (), 8192)
+            
+        # >>> ВСТАВЛЯТЬ СЮДА <<<
+        
+        import os
+
+        print('os.stat("certs/cert.der")[6]:', os.stat("certs/cert.der")[6])
+        print('os.stat("certs/key.der")[6]:', os.stat("certs/key.der")[6])
+
+
+        # Сеть уже поднялась. Запускаем изолированный тест AWS IoT Core:
+        print("=== ЗАПУСК ОТЛАДКИ AWS MQTT ===")
+        from net.mqtt import test
+        test()
+        # >>> КОНЕЦ ВСТАВКИ <<<    
 
         if wlan_init or modem_init:
             board.led[0] = (0x10, 0x10 , 0)

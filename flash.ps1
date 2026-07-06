@@ -16,6 +16,7 @@ $SRCS = @(
     "hw/$([System.IO.Path]::GetFileNameWithoutExtension($Board))",
     "net",
     "uclient",
+    "certs",  # <--- каталог с сертификатами AWS 
     "."
 )
 
@@ -209,7 +210,7 @@ function Upload-File {
 }
 
 # ============================================================
-# PYTHON FILES
+# PYTHON & CERTIFICATE FILES
 # ============================================================
 
 foreach ($_lib in $SRCS) {
@@ -218,9 +219,14 @@ foreach ($_lib in $SRCS) {
         Ensure-RemoteDir $_lib
     }
 
+    # Модифицируем паттерн, чтобы для папки certs искались файлы .der
     $pattern =
         if ($_lib -eq ".") {
             "src/*.py"
+        }
+        elseif ($_lib -eq "certs") {
+            #"certs/*.der"  # Если файлы лежат в корневой папке certs/ вашего проекта
+            "src/certs/*.der" # <--- раскомментируйте это, если перенесли папку внутрь src/
         }
         else {
             "src/$_lib/*.py"
@@ -242,9 +248,19 @@ foreach ($_lib in $SRCS) {
                 "$_lib/$($_f.Name)"
             }
 
+        # Для файлов сертификатов компиляция в .mpy не нужна, сразу загружаем:
+        if ($_lib -eq "certs") {
+            Upload-File $_f.FullName $_rf
+            continue
+        }
+
         $_mpy = [System.IO.Path]::ChangeExtension($_f.FullName, ".mpy")
 
         $compiled = $false
+        
+        # ----------------------------------------------------
+        # COMPILE TO MPY (Остальной ваш код компиляции ниже остается без изменений...)
+        # ----------------------------------------------------
 
         # ----------------------------------------------------
         # COMPILE TO MPY

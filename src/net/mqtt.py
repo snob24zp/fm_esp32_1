@@ -2,6 +2,8 @@ import socket
 import struct
 import select
 
+import gc
+
 try:
     from time import ticks_ms, time
 except ImportError:
@@ -46,8 +48,21 @@ class MQTTClient:
         self._keepalive_tmr = time()
 
     def _send_str(self, s:str):
-        self.sock.send(struct.pack("!H", len(s)))
-        self.sock.send(s.encode())
+        self._write(struct.pack("!H", len(s)))
+        self._write(s.encode())
+
+    # ВСТАВЛЯЙТЕ СЮДА:
+    def _write(self, bytes):
+        #if hasattr(self.sock, "write"):
+        self.sock.write(bytes)
+        #else:
+        #    self.sock.send(bytes)    
+    def _read(self, n):
+        #if hasattr(self.sock, "read"):
+        return self.sock.read(n)
+        #else:
+        #    return self.sock.recv(n)
+    
 
     @staticmethod
     def _recv_len(d: bytes):
@@ -78,8 +93,25 @@ class MQTTClient:
         addr = socket.getaddrinfo(self.server, self.port)[0][-1]
         self.sock.connect(addr)
         if self.ssl:
+            import gc  #RDD debug >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+            gc.collect()
+
+            print("FREE =", gc.mem_free())
+
+            try:
+                print("MAX =", gc.mem_maxfree())
+            except:
+                pass #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
             import ssl
+            #print("self.ssl_params",self.ssl_params)
+            print("connect 1")
+            print("SSL PARAMS =", self.ssl_params.keys())
             self.sock = ssl.wrap_socket(self.sock, **self.ssl_params)
+            print("connect 2")
+
         premsg = bytearray([0x10,0x00,0x00,0x00,0x00])
         msg = bytearray(b"\x04MQTT\x04\x02\0\0")
 
@@ -105,7 +137,7 @@ class MQTTClient:
         premsg[i] = sz
         premsg = premsg[:i + 2]
         premsg.extend(msg)
-        self.sock.send(premsg)
+        self._write(premsg)
 
         # print(hex(len(msg)), hexlify(msg, ":"))
         self._send_str(self.client_id)
@@ -115,7 +147,14 @@ class MQTTClient:
         if self.user is not None:
             self._send_str(self.user)
             self._send_str(self.pswd)
-        resp = self.sock.recv(4)
+
+        print("PREMSG HEX =", premsg)
+        print("CLIENT_ID =", self.client_id)
+        print("KEEPALIVE =", self.keepalive)
+        print("USER =", self.user)    
+        resp = self._read(4)
+        print("RESP =", resp)
+        print("RESP LEN =", len(resp))
         assert resp[0] == 0x20 and resp[1] == 0x02
         if resp[3] != 0:
             raise MQTTException(resp[3])
@@ -124,12 +163,12 @@ class MQTTClient:
         return resp[2] & 1
 
     def disconnect(self):
-        self.sock.send(b"\xe0\0")
+        self._write(b"\xe0\0")
         self.sock.close()
 
     def ping(self):
         self._keepalive_tmr = time()
-        self.sock.send(b"\xc0\0")
+        self._write(b"\xc0\0")
 
     def publish(self, topic, msg, retain=False, qos=0):
         pkt = bytearray(b"\x30\0\0\0")
@@ -148,14 +187,14 @@ class MQTTClient:
             i += 1
         pkt[i] = sz
         pkt = pkt[:i + 1]
-        self.sock.send(pkt)
+        self._write(pkt)
         self._send_str(topic)
         if qos > 0:
             self.pid += 1
             pid = self.pid
             struct.pack_into("!H", pkt, 0, pid)
-            self.sock.send(pkt[:2])
-        self.sock.send(msg)
+            self._write(pkt[:2])
+        self._write(msg)
         self._keepalive_tmr = time()
 
     def subscribe(self, topic, qos=0):
@@ -164,9 +203,9 @@ class MQTTClient:
         self.pid += 1
         struct.pack_into("!BH", pkt, 1, 2 + 2 + len(topic) + 1, self.pid)
         # print(hex(len(pkt)), hexlify(pkt, ":"))
-        self.sock.send(pkt)
+        self._write(pkt)
         self._send_str(topic)
-        self.sock.send(qos.to_bytes(1, "little"))
+        self._write(qos.to_bytes(1, "little"))
 
     # Wait for a single incoming MQTT message and process it.
     # Subscribed messages are delivered to a callback previously
@@ -258,12 +297,59 @@ class MQTTClient:
 
 def test():
     def on_msg(t, m):
-        print(t, m)
+            print(t, m)
 
-    mq = MQTTClient('mqtt-client-id', server='x.ks.ua', port=1883, keepalive=60)
+
+    gc.collect()
+
+    # 1. Читаем сертификаты поочередно, чтобы экономить RAM
+    try:
+        with open('certs/ecc-crt.der', 'rb') as f:
+            client_cert = f.read()
+        gc.collect()
+        
+        with open('certs/ecc-key.der', 'rb') as f:
+            client_key = f.read()
+        gc.collect()
+        
+        with open('certs/root_ca.der', 'rb') as f:
+            root_ca = f.read()
+        gc.collect()
+    except OSError:
+        print("OSError: Не удается найти файлы сертификатов")
+
+    # Явно упаковываем в bytes, чтобы mbedtls не запутался в типах данных
+    ssl_params = {
+        "cert": bytes(client_cert),
+        "key": bytes(client_key),
+        "cadata": bytes(root_ca),
+        "server_side": False
+    }
+
+    # Мгновенно удаляем тяжелые переменные из области видимости Python
+    del client_cert
+    del client_key
+    del root_ca
+    gc.collect()
+
+    print("FREE DIRECTLY BEFORE TLS =", gc.mem_free())
+    print("FREE BEFORE CONNECT =", gc.mem_free())
+    #print("max FREE BEFORE CONNECT =", gc.mem_maxfree()   ) 
+    
+    # 3. Инициализируем защищенное подключение к эндпоинту Amazon
+    mq = MQTTClient(
+        client_id='esp32', # Имя вашей вещи (Thing Name) в AWS
+        server='a3bb1kruav9c9p-ats.iot.eu-central-1.amazonaws.com', # Данные с вашего скриншота
+        port=8883,
+        ssl=True,
+        ssl_params=ssl_params,
+        keepalive=60
+    )
+    
     mq.set_callback(on_msg)
     mq.connect()
-    mq.subscribe('/topic/test-sub')
+    mq.subscribe(">/17:91:a8:06:f4:fc/4243850920/3")
+    mq.publish("</17:91:a8:06:f4:fc/4243850920/TestConnectESP32", b"1")
     tm = ticks_ms()
     idx = 0
     while True:
