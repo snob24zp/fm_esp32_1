@@ -111,6 +111,10 @@ class MQTTClient:
             self._send_str(self.user)
             self._send_str(self.pswd)
         resp = self.sock.read(4)
+        if resp is None or len(resp) == 0:
+            raise OSError("MQTT broker closed connection before CONNACK")
+        if len(resp) != 4:
+            raise OSError("Invalid MQTT CONNACK: %r" % resp)
         assert resp[0] == 0x20 and resp[1] == 0x02
         if resp[3] != 0:
             raise MQTTException(resp[3])

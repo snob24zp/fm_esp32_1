@@ -1,76 +1,70 @@
 import gc
-import ssl
-from net.umqtt_simple import MQTTClient  # Ваш новый путь к официальному клиенту
 
-def on_msg(topic, msg):
-    print("Получено сообщение:", topic.decode(), msg.decode())
+from net.umqtt_simple import MQTTClient, MQTTException
+
+
+# AWS IoT Core MQTT endpoint. Port 8883 is MQTT over TLS, not HTTPS.
+HOST = "a3bb1kruav9c9p-ats.iot.eu-central-1.amazonaws.com"
+PORT = 8883
+
+# Keep the ID unique among simultaneously connected devices.
+CLIENT_ID = "esp32-c3-mpy-test"
+
+# Topic used by the working ESP32 C++ implementation.
+TOPIC = "</17:91:a8:06:f4:fc/4243850920/TestConnectESP32"
+
 
 def test():
-    print("=== ЗАПУСК ОТЛАДКИ AWS MQTT (ФИНАЛЬНЫЙ ВАРИАНТ) ===")
-    
+    """Connect to AWS IoT and verify an MQTT QoS 1 publish."""
+    print("=== AWS MQTT TEST ===")
     gc.collect()
-    print("FREE BEFORE CONNECT =", gc.mem_free())
+    print("FREE BEFORE MQTT =", gc.mem_free())
 
-    # 1. Читаем бинарные файлы сертификатов из папки certs/
+    client = None
     try:
-        with open('certs/ecc-crt.der', 'rb') as f: #ecc-crt # cert
-            client_cert = f.read()
-        with open('certs/ecc-key.der', 'rb') as f: #ecc-key # key
-            client_key = f.read()
-        with open('certs/rootCA3.der', 'rb') as f: # rootCA3  # root_ca
-            root_ca = f.read()    
-    except OSError:
-        print("Ошибка: Не найдены файлы в папке certs/")
-        return
+        print("Loading certificates...")
+        # The ECC credential pair needs far less heap than RSA-2048 during
+        # the mutual TLS handshake on this MicroPython build.
+        with open("certs/ecc-crt.der", "rb") as f:
+            cert = f.read()
+        with open("certs/ecc-key.der", "rb") as f:
+            key = f.read()
+        with open("certs/root_ca.der", "rb") as f:
+            ca = f.read()
 
-    # 2. Собираем классический словарь ssl_params для mbedtls
-    ssl_params = {
-        "cert": client_cert,
-        "key": client_key,
-        "cadata": root_ca,
-        "server_side": False
-    }
+        client = MQTTClient(
+            CLIENT_ID,
+            HOST,
+            port=PORT,
+            keepalive=60,
+            ssl=True,
+            ssl_params={
+                "key": key,
+                "cert": cert,
+                "cadata": ca,
+                "server_hostname": HOST,
+            },
+        )
 
-    # Мгновенно чистим дубликаты из RAM перед подключением
-    del client_cert
-    del client_key
-    del root_ca
-    gc.collect()
+        print("MQTT CONNECT...")
+        session_present = client.connect()
+        print("CONNACK OK; session_present =", session_present)
 
-    # 3. Инициализируем официальный клиент, передавая ssl_params напрямую
-    server_host = 'a3bb1kruav9c9p-ats.iot.eu-central-1.amazonaws.com'
-    
-    mq = MQTTClient(
-        client_id='esp32-c3-bridge',
-        server=server_host,
-        port=8883,
-        ssl=True,              # Включаем SSL
-        ssl_params=ssl_params,  # Передаем словарь параметров напрямую сюда
-        keepalive=60
-    )
-    
-    mq.set_callback(on_msg)
+        payload = b'{"status":"working","device":"ESP32C3"}'
+        print("MQTT PUBLISH QoS=1...")
+        client.publish(TOPIC, payload, qos=1)
+        print("PUBACK OK; message accepted by AWS IoT")
 
-    # 4. Подключение
-    try:
-        print("Выполняется mq.connect()...")
-        mq.connect()
-        print("УСПЕШНО ПОДКЛЮЧЕНО К AWS IOT CORE!")
-        
-        topic_sub = b">/17:91:a8:06:f4:fc/4243850"
-        mq.subscribe(topic_sub)
-        print("Успешная подписка на топик")
-        
-        for _ in range(10):
-            mq.check_msg()
-            import time
-            time.sleep(1)
-            
+    except MQTTException as e:
+        print("MQTT ERROR:", repr(e))
+    except OSError as e:
+        print("NETWORK/TLS ERROR:", repr(e))
     except Exception as e:
-        print("Ошибка при работе с AWS MQTT:", e)
-
-    # ВРЕМЕННО: Останавливаем систему здесь, чтобы освободить RAM 
-    # и не дать запуститься фоновому коннекту к x.ks.ua
-    import sys
-    print("Тест завершен. Принудительный останов.")
-    sys.exit()    
+        print("ERROR:", repr(e))
+    finally:
+        if client is not None:
+            try:
+                client.disconnect()
+                print("MQTT DISCONNECTED")
+            except Exception:
+                pass

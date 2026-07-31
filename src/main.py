@@ -215,6 +215,7 @@ def main():
         print("=== ЗАПУСК ОТЛАДКИ AWS MQTT ===")
         from net.mqtt import test
         test()
+        return
         # >>> КОНЕЦ ВСТАВКИ <<<    
 
         if wlan_init or modem_init:
