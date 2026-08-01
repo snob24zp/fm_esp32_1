@@ -24,6 +24,7 @@ from version import STATIC_VERSION
 
 from uclient.mqtt_transport import mqtt_transport as mqtt
 from uclient.device import device_base
+from net.mqtt import MQTTException
 
 class HUB(log):
     '''
@@ -386,12 +387,33 @@ class HUB(log):
         """
         use_ssl = False
         port = 1883
+        ssl_params = None
         if self.server.startswith("mqtt://"):
             self.server = self.server[7:]
         elif self.server.startswith("mqtts://"):
             self.server = self.server[8:]
             port = 8883
             use_ssl=True
+            self.info('Loading certificates for TLS...')
+            try:
+                with open("certs/ecc-crt.der", "rb") as f:
+                    cert = f.read()
+                with open("certs/ecc-key.der", "rb") as f:
+                    key = f.read()
+                with open("certs/root_ca.der", "rb") as f:
+                    ca = f.read()
+                ssl_params = {
+                    "key": key,
+                    "cert": cert,
+                    "cadata": ca,
+                    "server_hostname": self.server,
+                }
+                gc.collect()
+                self.info(f'Free mem after cert load: {gc.mem_free()} bytes')
+            except OSError as ex:
+                self.err(f'Could not load certificates: {ex}')
+                reset()
+                return
         else:
             self.warn("Try to connect without uri-schema")
 
@@ -401,12 +423,15 @@ class HUB(log):
             try:
                 if len(h) == 1:
                     self.client.connect(h[0], port=port,
-                                        user=self.username, password=self.password, use_ssl=use_ssl)
+                                        user=self.username, password=self.password,
+                                        use_ssl=use_ssl, ssl_params=ssl_params)
                 elif len(h) == 2:
                     self.client.connect(h[0], port=int(h[1]),
-                                        user=self.username, password=self.password, use_ssl=use_ssl)
+                                        user=self.username, password=self.password,
+                                        use_ssl=use_ssl, ssl_params=ssl_params)
                 break
-            except OSError:
+            except (OSError, MQTTException) as ex:
+                self.err(f'Connect error: {ex}')
                 sleep(timeout)
                 timeout *= 2
                 if timeout < 256:

@@ -3,6 +3,7 @@
 MQTT Transport abstraction layer
 """
 
+import gc
 import time
 from log import log
 from net.mqtt import MQTTClient
@@ -19,35 +20,45 @@ else:
 
 class mqtt_transport(transport, log):
     '''MQTT Transport layer, which uses default micropython mqtt client'''
+    # Fixed client ID for AWS IoT Core (must match thing name in AWS)
+    CLIENT_ID = "esp32-c3-mpy-test"
+
     def __init__(self, name: str) -> None:
         transport.__init__(self, name)
         log.__init__(self, 'MQTT')
 
         self._lw = None
         self.client = None
-        self.host = 'x.ks.ua'
-        self.port = 1883
+        self.host = 'a3bb1kruav9c9p-ats.iot.eu-central-1.amazonaws.com'
+        self.port = 8883
+        self._ssl_params = None
         self.__on_connect_cb = None
         self.__on_disconnect_cb = None
         self.__subscribers = {}
 
     @log.dbg_wr
-    def connect(self, host: str, port: int = 1883, user = None, password = None, use_ssl = False) -> None:
+    def connect(self, host: str, port: int = 1883, user = None, password = None, use_ssl = False, ssl_params = None) -> None:
         '''Connect to the broker
         :param host: Broker host
         :param port: Broker Port, by default 1883
         :param user: MQTT Username
         :param password: MQTT Password
+        :param use_ssl: Use SSL/TLS
+        :param ssl_params: SSL parameters (key, cert, cadata, server_hostname)
         '''
         self.host = host
         self.port = port
+        self._ssl_params = ssl_params
 
-        self.client = MQTTClient(self.name, host, port,
-                                    keepalive=60, user=user, password=password, ssl=use_ssl)
+        self.client = MQTTClient(mqtt_transport.CLIENT_ID, host, port,
+                                    keepalive=60, user=user, password=password,
+                                    ssl=use_ssl, ssl_params=ssl_params)
         if self._lw is not None:
             self.client.set_last_will(self._lw[0], self._lw[1], qos=1)
 
         self.client.set_callback(self.__on_message)
+        gc.collect()
+        self.info(f'Free mem before MQTT connect: {gc.mem_free()} bytes')
         self.client.connect()
         time.sleep(1)
         for t in self.__subscribers.keys():
@@ -133,7 +144,8 @@ class mqtt_transport(transport, log):
 
                 self.warn(f'Reconnecting in {_int_reconnect}s')
                 time.sleep(_int_reconnect)
-                self.connect(self.host, self.port)
+                self.connect(self.host, self.port, use_ssl=self._ssl_params is not None,
+                             ssl_params=self._ssl_params)
                 self.__on_connect()
                 return
             except OSError as e:
@@ -154,7 +166,13 @@ class mqtt_transport(transport, log):
 
 def test():
     mq = mqtt_transport('tst-mq-client')
-    mq.connect('x.ks.ua')
+    mq.connect('a3bb1kruav9c9p-ats.iot.eu-central-1.amazonaws.com', port=8883,
+               use_ssl=True, ssl_params={
+                   "key": open("certs/ecc-key.der", "rb").read(),
+                   "cert": open("certs/ecc-crt.der", "rb").read(),
+                   "cadata": open("certs/root_ca.der", "rb").read(),
+                   "server_hostname": "a3bb1kruav9c9p-ats.iot.eu-central-1.amazonaws.com",
+               })
     mq.subscribe('/00:11:22:33:44:55/#', lambda topic, val: print(f'A: {topic} -> {val}'))
     mq.subscribe('/topic_b/#', lambda topic, val: print(f'B: {topic} -> {val}'))
 

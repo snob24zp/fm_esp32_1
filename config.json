@@ -1,7 +1,7 @@
 {
     "broker": {
-        "host": "x.ks.ua",
-        "port": 1883
+        "host": "a3bb1kruav9c9p-ats.iot.eu-central-1.amazonaws.com",
+        "port": 8883
     },
     "cfg_file": "config.json",
     "device_id": "moOGHrmlk8Alu5z1pU1osF8MthsVHBRi5gZ/YnCdCrM=",

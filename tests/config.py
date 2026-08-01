@@ -14,7 +14,7 @@ except ImportError:
 
 
 class config_t(json_object):
-    DEFAULT_BROKER = {'host': 'x.ks.ua', 'port': 1883}  # broker address
+    DEFAULT_BROKER = {'host': 'a3bb1kruav9c9p-ats.iot.eu-central-1.amazonaws.com', 'port': 8883}  # broker address
     DEFAULT_TOKEN = '48:3f:da:55:07:5c'
     DEFAULT_SERIAL = 3996365522
     DEFAULT_USER = "admin@admin.com"

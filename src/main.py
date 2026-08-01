@@ -152,7 +152,7 @@ def wlan_est(modem_init):
             
             #led_cycle()  #RDD TODO freezed
             
-            time.sleep_ms(500)
+            time.sleep_ms(2000)
             print('waiting for network (WIFI)...1')
 
         if cfg.wlan_mode == 0:
@@ -208,7 +208,7 @@ def main():
 
         if wlan_init:
             print('IP config: ', board.network.ifconfig())
-            start_thread(lambda: webapp.init().run(port=80), (), 8192)
+            # start_thread(lambda: webapp.init().run(port=80), (), 8192)  # WEBAPP disabled when working via MQTT
             
         # >>> ВСТАВЛЯТЬ СЮДА <<<
         # test of AWS IoT Core MQTT connection and publish

@@ -8,7 +8,7 @@
     "ifconfig": [
         "dhcp"
     ],
-    "server": "x.ks.ua",
+    "server": "mqtts://a3bb1kruav9c9p-ats.iot.eu-central-1.amazonaws.com",
     "token": "1b:e6:21:3a:4c:a4",
     "serial": 2756459041,
     "device_id": "51a6027dfe69afa771e4c8d584daa38cd79b5eb7abce9494fb12114157b63ad3"

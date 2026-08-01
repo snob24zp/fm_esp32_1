@@ -21,13 +21,13 @@ else:
 class config_t(json_object):
     def __init__(self, cfg_file = _filename):
         self.mac = unique_id().hex()
-        self.wlan_mode = 1 # 0 Client 1 # ap
+        self.wlan_mode = 0 # 0 Client 1 # ap
         self.ap_ssid = f'AR-{self.mac}'
         self.ap_pwd = ''
         self.sta_ssid = f'TP-Link_AF28'
-        self.sta_pwd = '4601119'
+        self.sta_pwd = '46011190'
         self.ifconfig = ('dhcp',)
-        self.server = "x.ks.ua"
+        self.server = "mqtts://a3bb1kruav9c9p-ats.iot.eu-central-1.amazonaws.com"
         self.token = bytes.fromhex(self.mac).hex(':')
         self.serial = int.from_bytes(bytes.fromhex(self.mac)[2:],'little')
         self.device_id = hashlib.sha256(self.mac.encode()).digest().hex()
