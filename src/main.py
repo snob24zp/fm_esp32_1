@@ -1,9 +1,9 @@
 import board
 import time
 from config import config_t
-#import net.webapp as webapp
+import net.webapp as webapp
 
-from net.mqtt import test
+#from net.mqtt import test
 
 import sys
 import json
@@ -130,7 +130,7 @@ def modem_est():
         if net.init():
             time.sleep(5)
             _start = time.time()
-            while not net.is_connected() and _start < (time.time() + 30):
+            while not net.is_connected() and time.time() < (_start + 30):
                 print('waiting for network (LTE)...')
                 led_cycle()
             try:
@@ -147,11 +147,11 @@ def wlan_est(modem_init):
         net.init()
         time.sleep(5)
         _start = time.time()
-        while not net.is_connected() and _start < (time.time() + 30):
+        while not net.is_connected() and time.time() < (_start + 30):
             print('waiting for network (WIFI)...')
-            print('waiting for network (WIFI)...1.1')
+            
             #led_cycle()  #RDD TODO freezed
-            print('waiting for network (WIFI)...1.2')
+            
             time.sleep_ms(500)
             print('waiting for network (WIFI)...1')
 
@@ -162,9 +162,10 @@ def wlan_est(modem_init):
                 print('waiting for network (WIFI)...3')
             except:
                 print('Could not get update from NTP server')
-                
+
+            print('waiting for network (WIFI)...4')    
             return net.is_connected()
-            print('waiting for network (WIFI)...4')
+            
 
     return False
 
@@ -190,9 +191,15 @@ def main():
         modem_init = False # modem_est()
         wlan_init = wlan_est(modem_init)
 
-        while cfg.wlan_mode == 0 and not wlan_init and not modem_init:
-            led_cycle(1,0,0)
-            wlan_init = wlan_init(modem_init)
+        # while cfg.wlan_mode == 0 and not wlan_init and not modem_init:
+        #     #led_cycle(1,0,0)
+        #     wlan_init = wlan_est(modem_init)
+     
+        if cfg.wlan_mode == 0 and not wlan_init and not modem_init:
+            print('No network connection established. Please check your configuration.')
+            time.sleep(1)
+            cfg.reset()
+
 
         if cfg.wlan_mode == 1 and not wlan_init:
             board.led[0] = (0x10, 0x00, 0x00)
@@ -201,21 +208,21 @@ def main():
 
         if wlan_init:
             print('IP config: ', board.network.ifconfig())
-            #start_thread(lambda: webapp.init().run(port=80), (), 8192)
+            start_thread(lambda: webapp.init().run(port=80), (), 8192)
             
         # >>> ВСТАВЛЯТЬ СЮДА <<<
-        
-        import os
+        # test of AWS IoT Core MQTT connection and publish
+        # import os
 
-        print('os.stat("certs/cert.der")[6]:', os.stat("certs/cert.der")[6])
-        print('os.stat("certs/key.der")[6]:', os.stat("certs/key.der")[6])
+        # print('os.stat("certs/cert.der")[6]:', os.stat("certs/cert.der")[6])
+        # print('os.stat("certs/key.der")[6]:', os.stat("certs/key.der")[6])
 
 
-        # Сеть уже поднялась. Запускаем изолированный тест AWS IoT Core:
-        print("=== ЗАПУСК ОТЛАДКИ AWS MQTT ===")
-        from net.mqtt import test
-        test()
-        return
+        # # Сеть уже поднялась. Запускаем изолированный тест AWS IoT Core:
+        # print("=== ЗАПУСК ОТЛАДКИ AWS MQTT ===")
+        # from net.mqtt import test
+        # test()
+        # return
         # >>> КОНЕЦ ВСТАВКИ <<<    
 
         if wlan_init or modem_init:
@@ -236,6 +243,10 @@ def main():
                 hub.step()
 
             machine.reset()
+            
+        while True:
+            pass
+
     else:
         banner = '''Set register from shell: device.set_reg(num, value)
 

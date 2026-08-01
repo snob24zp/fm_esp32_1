@@ -1,0 +1,81 @@
+stateDiagram-v2
+    [*] --> START: power on / reset
+
+    state "START: load config_t(), set log level" as START
+    START --> CHECK_PLATFORM
+
+    state "CHECK_PLATFORM: sys.version contains MicroPython?" as CHECK_PLATFORM
+    CHECK_PLATFORM --> LED_CYCLE: yes (MicroPython)
+    CHECK_PLATFORM --> PC_SIM: no (PC / simulation)
+
+    state "LED_CYCLE: startup LED animation" as LED_CYCLE
+    LED_CYCLE --> CHECK_RESET_PAD
+
+    state "CHECK_RESET_PAD: rst_pad pressed?" as CHECK_RESET_PAD
+    CHECK_RESET_PAD --> WAIT_RESET_PAD: no (not pressed)
+    CHECK_RESET_PAD --> NETWORK_INIT: yes (pressed)
+
+    state "WAIT_RESET_PAD: wait up to 5s for rst_pad" as WAIT_RESET_PAD
+    WAIT_RESET_PAD --> NETWORK_INIT: pad pressed within 5s
+    WAIT_RESET_PAD --> CONFIG_RESET: timeout (5s elapsed)
+
+    state "CONFIG_RESET: cfg.reset() -> defaults" as CONFIG_RESET
+    CONFIG_RESET --> NETWORK_INIT
+
+    state "MODEM_INIT: modem_est() (currently disabled)" as MODEM_INIT
+    MODEM_INIT --> WLAN_INIT
+
+    state "WLAN_INIT: wlan_est() -> net.init()" as WLAN_INIT
+    WLAN_INIT --> WAIT_NETWORK
+
+    state "WAIT_NETWORK: wait up to 30s for connection" as WAIT_NETWORK
+    WAIT_NETWORK --> NTP_SYNC: connected
+    WAIT_NETWORK --> NETWORK_FAIL: timeout
+
+    state "NTP_SYNC: ntptime.settime() (if wlan_mode==0)" as NTP_SYNC
+    NTP_SYNC --> NETWORK_OK
+
+    state "NETWORK_OK: wlan_init = is_connected()" as NETWORK_OK
+    state "NETWORK_FAIL: wlan_init = False" as NETWORK_FAIL
+
+    NETWORK_OK --> AP_MODE: wlan_mode==1 and not wlan_init
+    NETWORK_OK --> WEBAPP_THREAD: wlan_init
+    NETWORK_OK --> DEVICE_INIT: wlan_init or modem_init
+    NETWORK_OK --> IDLE: no network
+
+    state "AP_MODE: webapp.run(port=80, debug=True) (blocking)" as AP_MODE
+    AP_MODE --> [*]: reboot
+
+    state "WEBAPP_THREAD: start_thread(webapp.run(port=80))" as WEBAPP_THREAD
+
+    state "CREATE_DEVICE: uart_device(cfg.serial)" as CREATE_DEVICE
+    CREATE_DEVICE --> BLE_INIT: has BLE and not wlan_init
+    CREATE_DEVICE --> HUB_CONNECT: no BLE
+
+    state "BLE_INIT: device.set_ble(board.ble)" as BLE_INIT
+    BLE_INIT --> HUB_CONNECT
+
+    state "HUB_CONNECT: HUB(cfg.server, cfg.token, [device]) hub.connect()" as HUB_CONNECT
+    HUB_CONNECT --> RUNNING
+
+    state "RUNNING: while hub.is_connected: hub.step()" as RUNNING
+    RUNNING --> HUB_DISCONNECTED: hub.is_connected == False
+
+    state "HUB_DISCONNECTED: connection lost" as HUB_DISCONNECTED
+    HUB_DISCONNECTED --> RESET: machine.reset()
+
+    state "RESET: reboot" as RESET
+    RESET --> [*]: reboot
+
+    state "IDLE: while True: pass (no network)" as IDLE
+
+    state "PC_DEVICE_INIT: uart_device(cfg.serial)" as PC_DEVICE_INIT
+    PC_DEVICE_INIT --> PC_HUB_CONNECT
+
+    state "PC_HUB_CONNECT: HUB(...).connect()" as PC_HUB_CONNECT
+    PC_HUB_CONNECT --> PC_THREADS
+
+    state "PC_THREADS: start webapp thread (port 3000) + dev_step_thread" as PC_THREADS
+    PC_THREADS --> PC_INTERACT
+
+    state "PC_INTERACT: code.interact() interactive shell" as PC_INTERACT
