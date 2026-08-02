@@ -1,7 +1,6 @@
 import board
 import time
 from config import config_t
-import net.webapp as webapp
 
 #from net.mqtt import test
 
@@ -204,6 +203,7 @@ def main():
         if cfg.wlan_mode == 1 and not wlan_init:
             board.led[0] = (0x10, 0x00, 0x00)
             board.led.write()
+            import net.webapp as webapp
             webapp.init().run(port=80, debug=True)
 
         if wlan_init:
@@ -259,6 +259,7 @@ Connect to the Serial terminal at /tmp/uart
         hub.connect()
 
         def webapp_run():
+            import net.webapp as webapp
             webapp.init().run(port=3000)
 
         def dev_step_thread():
