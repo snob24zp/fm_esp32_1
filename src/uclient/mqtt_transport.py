@@ -27,6 +27,12 @@ class mqtt_transport(transport, log):
         transport.__init__(self, name)
         log.__init__(self, 'MQTT')
 
+        # Enable automatic GC when heap is low (MicroPython)
+        try:
+            gc.threshold(10000)
+        except Exception:
+            pass
+
         self._lw = None
         self.client = None
         self.host = 'a3bb1kruav9c9p-ats.iot.eu-central-1.amazonaws.com'
@@ -49,6 +55,9 @@ class mqtt_transport(transport, log):
         self.host = host
         self.port = port
         self._ssl_params = ssl_params
+
+        # Free memory before creating new TLS client
+        gc.collect()
 
         self.client = MQTTClient(mqtt_transport.CLIENT_ID, host, port,
                                     keepalive=60, user=user, password=password,
@@ -144,6 +153,14 @@ class mqtt_transport(transport, log):
 
                 self.warn(f'Reconnecting in {_int_reconnect}s')
                 time.sleep(_int_reconnect)
+                # Close old client/socket to free memory before TLS handshake
+                if self.client is not None:
+                    try:
+                        self.client.disconnect()
+                    except Exception:
+                        pass
+                    self.client = None
+                gc.collect()
                 self.connect(self.host, self.port, use_ssl=self._ssl_params is not None,
                              ssl_params=self._ssl_params)
                 self.__on_connect()

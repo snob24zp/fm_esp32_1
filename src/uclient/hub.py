@@ -77,7 +77,8 @@ class HUB(log):
         self.client.on_disconnect(self.__on_disconnect)
         self.time = None
         self.status = 0
-        self.state = self.REG_DEREG
+        # self.state = self.REG_DEREG
+        self.state = self.REG_SEND_SRV_DATA  # TEMP: bypass /reg registration
         self.is_connected = False
         self.lifetime = 3
         self.pub_tmr = ticks_ms()
@@ -196,7 +197,8 @@ class HUB(log):
 
         self.warn("Disconecting from broker")
         self.is_connected = False
-        self.state = self.REG_DEREG
+        # self.state = self.REG_DEREG
+        self.state = self.REG_SEND_SRV_DATA  # TEMP: bypass /reg registration
         self.status = 0
         if self._on_disconnect_cb is not None and callable(self._on_disconnect_cb):
             self._on_disconnect_cb()
@@ -281,6 +283,11 @@ class HUB(log):
                     if self._on_chg_state is not None and callable(self._on_chg_state):
                         self._on_chg_state(self.state)
 
+                    # TEMP: bypass /reg registration - register devices directly
+                    tm = self.time if self.time is not None else ticks_ms() // 1000
+                    for dev in self.devices:
+                        dev.register(tm)
+
                     self.pub_hub("info", json.dumps(
                         {
                             "mac": self.token,
@@ -362,7 +369,8 @@ class HUB(log):
         '''
         Де-регистрирует устройство
         '''
-        self.state = self.REG_DEREG
+        # self.state = self.REG_DEREG
+        self.state = self.REG_SEND_SRV_DATA  # TEMP: bypass /reg registration
         self.status = 0
         self.lifetime = 1
 

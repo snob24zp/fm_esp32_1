@@ -10,16 +10,15 @@ except ImportError:
         return int(time.time() * 1000)
 
 from uclient.device import device_base
-from uclient.userdev import user_device
 
-class mem_device(user_device):
+class mem_device(device_base):
     MEM_SZ = 1024
     MEM_DIR = 'data'
     FNAME = f'%d.bin'
     FPATH = f'{MEM_DIR}/{FNAME}'
 
-    def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0, device_id: bytes  = None):
-        super().__init__(serial, dtype, regs, status, device_id)
+    def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
+        super().__init__(serial, dtype, regs, status)
         self.pre_time = ticks_ms()
         self.__fname = mem_device.FNAME % serial
         self.__fpath = mem_device.FPATH % serial

@@ -1,5 +1,6 @@
 import board
 import time
+import gc
 from config import config_t
 
 #from net.mqtt import test
@@ -23,13 +24,14 @@ hub = None
 
 class uart_device(fwupd_device):
     def __init__(self, serial, dtype=device_base.DEVICE_TYPE, regs={}, status=0):
-        super().__init__(serial, dtype, regs, status, bytes.fromhex(config_t().device_id))
+        super().__init__(serial, dtype, regs, status)
         board.uplink.on_rx(self.on_rx_uart)
         self.ble = None
         self.qble = []
         self.quart = []
         self.qmqtt = []
         self.led_lock = False
+        self.test_tmr = 0   # TEMP: periodic synthetic 3KB packet to MQTT
 
     def set_ble(self, ble):
         if ble is None:
@@ -79,6 +81,15 @@ class uart_device(fwupd_device):
 
     def step(self):
         board.uplink()
+
+        # TEMP: publish synthetic 3KB packet to MQTT (reg 3) every 10 seconds
+        if self._hub is not None and self._hub.state == HUB.REG_DONE and time.ticks_ms() > (self.test_tmr + 10000):
+            self.test_tmr = time.ticks_ms()
+            gc.collect()
+            pkt = ('%010d:' % self.test_tmr) + ('A' * 3061)  # 11 + 3061 = 3072 bytes
+            self.info(f'TEST: publish synthetic 3KB packet -> reg 3 (free mem: {gc.mem_free()})')
+            self.set_reg(3, pkt)
+
         if len(self.qble) > 0:
             for _q in self.qble:
                 board.uplink.tx(_q)
