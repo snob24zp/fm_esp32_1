@@ -81,8 +81,19 @@ class mqtt_transport(transport, log):
     @log.dbg_wr
     def publish(self, topic: str, value: bytes, qos: int = 0) -> None:
         '''Publish message'''
+        print(f'[DBG] mqtt_transport.publish() enter, topic={topic}, len={len(value)}')
         if self.client is not None:
-            self.client.publish(topic, msg=str(value), qos=qos)
+            print("free before publish =", gc.mem_free())
+
+            print("before publish -> check_msg")
+            try:
+                self.client.check_msg()
+                print("check_msg OK")
+            except Exception as e:
+                print("check_msg failed:", repr(e))
+
+            self.client.publish(topic, msg=value, qos=qos)
+            print(f'[DBG] mqtt_transport.publish() client.publish OK')
 
     @log.dbg_wr
     def subscribe(self, topic: str, callback: object) -> None:

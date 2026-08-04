@@ -10,13 +10,17 @@ class uart_link(link):
         '''
         Transmit data to the outside
         '''
+        print(f'[DBG] uart_link.tx() enter, len={len(data)}')
         self.__uart.write(data)
+        print(f'[DBG] uart_link.tx() write OK')
         self.__uart.flush()
+        print(f'[DBG] uart_link.tx() flush OK')
 
     def poll(self):
         try:
             ret_sz = self.__uart.any()
-            if ret_sz > self._threshold and ret_sz < 256 and self.rx_cb is not None:
+            # Вычитываем ВСЁ, что накопилось по таймауту/прерыванию
+            if ret_sz > self._threshold and self.rx_cb is not None:
                 _ret = self.__uart.read(ret_sz)
                 if _ret is not None:
                     self.rx_cb(self, _ret)

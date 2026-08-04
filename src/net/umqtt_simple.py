@@ -1,5 +1,6 @@
 import socket
 import struct
+import gc
 from binascii import hexlify
 
 
@@ -128,6 +129,7 @@ class MQTTClient:
         self.sock.write(b"\xc0\0")
 
     def publish(self, topic, msg, retain=False, qos=0):
+        print(f'[DBG] umqtt_simple.publish() enter, len(msg)={len(msg)}')
         pkt = bytearray(b"\x30\0\0\0")
         pkt[0] |= qos << 1 | retain
         sz = 2 + len(topic) + len(msg)
@@ -142,13 +144,17 @@ class MQTTClient:
         pkt[i] = sz
         # print(hex(len(pkt)), hexlify(pkt, ":"))
         self.sock.write(pkt, i + 1)
+        print(f'[DBG] umqtt_simple.publish() header written')
         self._send_str(topic)
+        print(f'[DBG] umqtt_simple.publish() topic written')
         if qos > 0:
             self.pid += 1
             pid = self.pid
             struct.pack_into("!H", pkt, 0, pid)
             self.sock.write(pkt, 2)
+        print("free before sock.write =", gc.mem_free())
         self.sock.write(msg)
+        print(f'[DBG] umqtt_simple.publish() payload written')
         if qos == 1:
             while 1:
                 op = self.wait_msg()

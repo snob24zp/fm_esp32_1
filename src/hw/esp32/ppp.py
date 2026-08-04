@@ -22,7 +22,7 @@ class modem(net_if):
             ("AT+CPIN?\r\n", "OK"),
             ("AT+CFUN=1\r\n", "OK"),
             ("AT+CEREG?\r\n", "OK"),
-            ('AT+CGDCONT=1,"IP","\T","",0,0\r\n', "OK"),
+            ('AT+CGDCONT=1,"IP","www.lifecell.ua","",0,0\r\n', "OK"),
             ('ATD*99#\r\n', 'CONNECT'),
         )
         self.uart_link.on_rx(self.__rx)

@@ -1,6 +1,7 @@
 import board
 import time
 import gc
+import consts
 from config import config_t
 
 #from net.mqtt import test
@@ -19,6 +20,89 @@ from uclient.fwupd import fwupd_device
 from uclient.hub import HUB
 from threadmpy import start_thread
 
+
+class AckFramingBuffer:
+    '''
+    Zero-copy конвейер UART -> MQTT.
+    Накопление байт из маленького C-буфера UART в единый глобальный bytearray.
+    Отправка кадра происходит строго по таймауту тишины на линии UART.
+    '''
+    def __init__(self, device_id: int):
+        # Заголовки обертки JSON
+        self.hdr = f'{{"dev":{device_id},"val":"'.encode()
+        self.ftr = b'"}'
+
+        self.hdr_len = len(self.hdr)
+        self.ftr_len = len(self.ftr)
+
+        # Выделяем единый глобальный буфер 1 раз при старте
+        self.max_frame_size = self.hdr_len + consts.MAX_UART_PAYLOAD_LEN + self.ftr_len
+        self.buf = bytearray(self.max_frame_size)
+
+        # Зашиваем заголовок 1 раз при инициализации
+        self.buf[0:self.hdr_len] = self.hdr
+
+        self.payload_len = 0
+        self.last_rx_time = 0
+
+    def append_chunk(self, chunk: bytes) -> bool:
+        '''
+        Потоковая дозапись порций байт напрямую в глобальный bytearray.
+        Возвращает False при переполнении (Overrun Protection).
+        '''
+        chunk_len = len(chunk)
+
+        # Защита от переполнения (Overrun Protection)
+        if self.payload_len + chunk_len > consts.MAX_UART_PAYLOAD_LEN:
+            print(f"[UART] Переполнение! Пакет превысил {consts.MAX_UART_PAYLOAD_LEN} B")
+            self.payload_len = 0  # Сброс поврежденного кадра
+            return False
+
+        write_pos = self.hdr_len + self.payload_len
+        self.buf[write_pos:write_pos + chunk_len] = chunk
+
+        self.payload_len += chunk_len
+        self.last_rx_time = time.ticks_ms()
+        return True
+
+    def try_flush(self, send_mqtt_cb, send_uart_cb) -> bool:
+        '''
+        Отправка пакета происходит СТРОГО по таймауту тишины на линии UART.
+        Возвращает True, если кадр был отправлен (ACK/NACK выслан).
+        '''
+        if self.payload_len == 0:
+            return False
+
+        now = time.ticks_ms()
+        # Проверка паузы тишины (Idle Timeout)
+        if time.ticks_diff(now, self.last_rx_time) > consts.UART_TIMEOUT_MS:
+            print(f'[DBG] try_flush() idle timeout OK, payload_len={self.payload_len}')
+            # 1. Запечатываем JSON-хвост
+            data_end = self.hdr_len + self.payload_len
+            pkt_end = data_end + self.ftr_len
+            self.buf[data_end:pkt_end] = self.ftr
+
+            # 2. Формируем 0-copy memoryview для передачи в сокет
+            packet_view = memoryview(self.buf)[:pkt_end]
+
+            # 3. Публикуем в MQTT
+            print(f'[DBG] try_flush() calling send_mqtt_cb...')
+            mqtt_success = send_mqtt_cb(packet_view)
+            print(f'[DBG] try_flush() mqtt_success={mqtt_success}')
+
+            # 4. Высылаем ACK/NACK и сбрасываем счетчик
+            # TODO: закомментировано — UART.flush() блокирует без приёмника на линии
+            # if mqtt_success:
+            #     send_uart_cb(consts.ACK_BYTE)
+            # else:
+            #     send_uart_cb(consts.NACK_BYTE)
+
+            self.payload_len = 0
+            return True
+
+        return False
+
+
 device = None
 hub = None
 
@@ -28,10 +112,13 @@ class uart_device(fwupd_device):
         board.uplink.on_rx(self.on_rx_uart)
         self.ble = None
         self.qble = []
-        self.quart = []
         self.qmqtt = []
         self.led_lock = False
-        self.test_tmr = 0   # TEMP: periodic synthetic 3KB packet to MQTT
+        self.framer = AckFramingBuffer(self.serial)
+        # Тестовый payload для эмуляции UART: 255×'0', '!', 255×'1', '!', ... 255×'5', '!' (1536 B)
+        self._test_payload = (b'0' * 255 + b'!' + b'1' * 255 + b'!' +
+                              b'2' * 255 + b'!' + b'3' * 255 + b'!' +
+                              b'4' * 255 + b'!' + b'5' * 255 + b'!')
 
     def set_ble(self, ble):
         if ble is None:
@@ -42,15 +129,35 @@ class uart_device(fwupd_device):
         self.ble.open()
 
     def on_rx_uart(self, _, value: bytes):
-        board.led[0] = (0x00, 0xff, 0x00)
-        board.led.write()
-        self.quart.append(value)
+        # board.led[0] = (0x00, 0xff, 0x00)
+        # board.led.write()
+
+        # Дописываем порцию из C-буфера сразу в глобальный bytearray
+        self.framer.append_chunk(value)
+
+        if self.ble is not None:
+            self.ble.write(value)
+
+    def _send_pkt_mqtt(self, pkt) -> bool:
+        '''
+        Прямая публикация бинарного пакета в MQTT (reg 3).
+        Возвращает True при успешной отправке.
+        '''
+        if self._hub is None or self._hub.state != HUB.REG_DONE:
+            return False
+        topic = f'{self.serial}/{consts.REG_PAYLOAD_TOPIC_ID}'
+        if self._hub.pub(topic, pkt):
+            return True
+        return False
+
+    def _tx_uart(self, data: bytes):
+        board.uplink.tx(data)
 
     def on_change_reg(self, topic: str, msg: object):
-        if self.isnumeric(topic) and int(topic) == 3:
-            if not self.led_lock:
-                board.led[0] = (0xff, 0x00, 0x00)
-                board.led.write()
+        if self.isnumeric(topic) and int(topic) == consts.REG_PAYLOAD_TOPIC_ID:
+            # if not self.led_lock:
+            #     board.led[0] = (0xff, 0x00, 0x00)
+            #     board.led.write()
             if isinstance(msg, str):
                 self.qmqtt.append(msg)
             else:
@@ -58,8 +165,8 @@ class uart_device(fwupd_device):
 
         if self.isnumeric(topic) and int(topic) == 4:
             if sys.version.count('MicroPython') > 0 and isinstance(msg, int):
-                board.led[0] = ((msg >> 16) & 0xff, (msg >> 8) & 0xff, msg & 0xff)
-                board.led.write()
+                # board.led[0] = ((msg >> 16) & 0xff, (msg >> 8) & 0xff, msg & 0xff)
+                # board.led.write()
                 self.led_lock = msg != 0
 
         if self.isnumeric(topic) and int(topic) == 5:
@@ -82,40 +189,64 @@ class uart_device(fwupd_device):
     def step(self):
         board.uplink()
 
-        # TEMP: publish synthetic 3KB packet to MQTT (reg 3) every 10 seconds
-        if self._hub is not None and self._hub.state == HUB.REG_DONE and time.ticks_ms() > (self.test_tmr + 10000):
-            self.test_tmr = time.ticks_ms()
-            gc.collect()
-            pkt = ('%010d:' % self.test_tmr) + ('A' * 3061)  # 11 + 3061 = 3072 bytes
-            self.info(f'TEST: publish synthetic 3KB packet -> reg 3 (free mem: {gc.mem_free()})')
-            self.set_reg(3, pkt)
+        # =========================================================================
+        # ТЕСТОВЫЙ БЛОК: Эмуляция прихода 3КБ пакета по UART порциями по 512 байт
+        # =========================================================================
+        if self._hub is not None and self._hub.state == HUB.REG_DONE:
+            if not hasattr(self, '_test_bytes_sent'):
+                self._test_bytes_sent = 0
+                self._test_last_chunk_time = 0
+                self._test_start_time = 0
+
+            now = time.ticks_ms()
+
+            # Раз в 15 секунд запускаем эмуляцию передачи 3 КБ (3072 байт)
+            if self._test_bytes_sent == 0 and time.ticks_diff(now, self._test_start_time) > 15000:
+                self._test_start_time = now
+                self._test_bytes_sent = 1  # Взводим флаг начала передачи
+                print(f"[TEST] --- Start UART 3KB stream emulation (Free RAM: {gc.mem_free()}) ---")
+
+            # Если идет процесс "передачи" — скармливаем по 512 байт каждые 10 мс
+            if 0 < self._test_bytes_sent <= consts.MAX_UART_PAYLOAD_LEN:
+                if time.ticks_diff(now, self._test_last_chunk_time) > 10:
+                    self._test_last_chunk_time = now
+
+                    # 1. Срез тестового паттерна: 255×'0', '!', 255×'1', '!', ... 255×'5', '!'
+                    idx = self._test_bytes_sent - 1
+                    dummy_chunk = self._test_payload[idx:idx + 512]
+
+                    # 2. Передаем в наш буфер так, как будто это пришло из UART
+                    self.framer.append_chunk(dummy_chunk)
+
+                    self._test_bytes_sent += len(dummy_chunk)
+                    print(f"[TEST] Emulated chunk 512 B (Total: {self._test_bytes_sent - 1}/{consts.MAX_UART_PAYLOAD_LEN})")
+
+                    if self._test_bytes_sent > consts.MAX_UART_PAYLOAD_LEN:
+                        self._test_bytes_sent = 0  # Передача завершена, ждем паузу тишины
+        # =========================================================================
+
+        # Проверка таймаута тишины и отправка кадра в MQTT
+        if self.framer.try_flush(self._send_pkt_mqtt, self._tx_uart):
+            # if not self.led_lock:
+            #     board.led[0] = (0x00, 0x00, 0x00)
+            #     board.led.write()
+            pass
 
         if len(self.qble) > 0:
             for _q in self.qble:
                 board.uplink.tx(_q)
-                self.set_reg(3, _q.decode())
+                self.set_reg(consts.REG_PAYLOAD_TOPIC_ID, _q.decode())
             del self.qble
             self.qble = []
-
-        if len(self.quart) > 0:
-            for _q in self.quart:
-                if self.ble is not None:
-                    self.ble.write(_q)
-                self.set_reg(3, _q.decode())
-                if not self.led_lock:
-                    board.led[0] = (0x00, 0x00, 0x00)
-                    board.led.write()
-            del self.quart
-            self.quart = []
 
         if len(self.qmqtt) > 0:
             for _q in self.qmqtt:
                 if self.ble is not None:
                     self.ble.write(_q)
                 board.uplink.tx(_q)
-                if not self.led_lock:
-                    board.led[0] = (0x00, 0x00, 0x00)
-                    board.led.write()
+                # if not self.led_lock:
+                #     board.led[0] = (0x00, 0x00, 0x00)
+                #     board.led.write()
             del self.qmqtt
             self.qmqtt = []
 
@@ -123,15 +254,15 @@ class uart_device(fwupd_device):
 
 def led_cycle(color = (1,1,1)):
     for i in range(0, 250, 10):
-        board.led[0] = (int(i * color[0]),int(i * color[1]), int(i * color[2]))
-        board.led.write()
+        # board.led[0] = (int(i * color[0]),int(i * color[1]), int(i * color[2]))
+        # board.led.write()
         time.sleep_ms(10)
     for i in range(250, 0, -10):
-        board.led[0] = (int(i * color[0]), int(i * color[1]) , int(i * color[2]))
-        board.led.write()
+        # board.led[0] = (int(i * color[0]), int(i * color[1]) , int(i * color[2]))
+        # board.led.write()
         time.sleep_ms(10)
-    board.led[0] = (0,0,0)
-    board.led.write()
+    # board.led[0] = (0,0,0)
+    # board.led.write()
 
 def modem_est():
     cfg = config_t()
@@ -159,9 +290,9 @@ def wlan_est(modem_init):
         _start = time.time()
         while not net.is_connected() and time.time() < (_start + 30):
             print('waiting for network (WIFI)...')
-            
+
             #led_cycle()  #RDD TODO freezed
-            
+
             time.sleep_ms(2000)
             print('waiting for network (WIFI)...1')
 
@@ -175,7 +306,7 @@ def wlan_est(modem_init):
 
             print('waiting for network (WIFI)...4')    
             return net.is_connected()
-            
+
 
     return False
 
@@ -196,10 +327,10 @@ def main():
             if _tm == 0:
                 cfg.reset()
 
-        board.led[0] = (0,0,0x10)
-        board.led.write()
-        modem_init = False # modem_est()
-        wlan_init = wlan_est(modem_init)
+        # board.led[0] = (0,0,0x10)
+        # board.led.write()
+        modem_init = modem_est() # False # 
+        wlan_init = False # wlan_est(modem_init)
 
         # while cfg.wlan_mode == 0 and not wlan_init and not modem_init:
         #     #led_cycle(1,0,0)
@@ -212,8 +343,8 @@ def main():
 
 
         if cfg.wlan_mode == 1 and not wlan_init:
-            board.led[0] = (0x10, 0x00, 0x00)
-            board.led.write()
+            # board.led[0] = (0x10, 0x00, 0x00)
+            # board.led.write()
             import net.webapp as webapp
             webapp.init().run(port=80, debug=True)
 
@@ -237,8 +368,8 @@ def main():
         # >>> КОНЕЦ ВСТАВКИ <<<    
 
         if wlan_init or modem_init:
-            board.led[0] = (0x10, 0x10 , 0)
-            board.led.write()
+            # board.led[0] = (0x10, 0x10 , 0)
+            # board.led.write()
             device = uart_device(cfg.serial)
             if hasattr(board, "ble") and not wlan_init:
                 device.set_ble(board.ble)
@@ -248,8 +379,8 @@ def main():
             hub = HUB(cfg.server, cfg.token, [device], _usr, _pwd)
             hub.connect()
 
-            board.led[0] = (0x00, 0x00, 0x00)
-            board.led.write()
+            # board.led[0] = (0x00, 0x00, 0x00)
+            # board.led.write()
             while hub.is_connected:
                 hub.step()
 
